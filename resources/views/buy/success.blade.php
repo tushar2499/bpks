@@ -173,7 +173,12 @@
     শুভকামনা! ড্র এর ফলাফল SMS-এ জানানো হবে।
   </p>
 
-  <a href="{{ route('buy.index') }}" class="btn btn-buy-more">
+  <a href="{{ route('ticket.download', ['ref' => $transaction->txn_ref]) }}"
+     class="btn btn-buy-more mb-2" download>
+    <i class="fas fa-download me-1"></i> টিকেট ডাউনলোড করুন
+  </a>
+  <a href="{{ route('buy.index') }}" class="btn btn-buy-more"
+     style="background:linear-gradient(135deg,#64748b,#475569);">
     <i class="fas fa-plus me-1"></i> আরও টিকেট কিনুন
   </a>
 

@@ -7,6 +7,8 @@ use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\TicketController;
 use App\Http\Controllers\BuyController;
 use App\Http\Controllers\CallbackController;
+use App\Http\Controllers\MyTicketController;
+use App\Http\Controllers\TicketImageController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 
@@ -15,6 +17,10 @@ Route::get('/', [BuyController::class, 'index'])->name('buy.index');
 Route::post('/buy', [BuyController::class, 'initiate'])->name('buy.initiate')
     ->middleware('throttle:10,1');  // 10 req/min per IP
 Route::get('/buy/success', [BuyController::class, 'success'])->name('buy.success');
+Route::get('/ticket/download', [TicketImageController::class, 'download'])->name('ticket.download');
+Route::get('/my-ticket', [MyTicketController::class, 'show'])->name('my-ticket.show');
+Route::post('/my-ticket', [MyTicketController::class, 'find'])->name('my-ticket.find')
+    ->middleware('throttle:3,60');
 
 // ─── SMS Delivery Notify (Robi calls this with delivery status) ──────────────
 Route::post('/sms-notify/{smsLogId}', [CallbackController::class, 'smsNotify'])

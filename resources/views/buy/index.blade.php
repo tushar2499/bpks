@@ -385,7 +385,7 @@
 <footer class="site-footer text-center" style="margin-bottom:70px;" id="siteFooter">
   <div class="container">
     <div class="mb-1">বাংলাদেশ প্রতিবন্ধী কল্যাণ সমিতি (বিপিকেএস) &nbsp;|&nbsp; জাতীয় লটারি-২০২৬</div>
-    <div>Powered by <a href="#">B2M Technologies Ltd.</a> &nbsp;|&nbsp; <a href="tel:09638222222">০৯৬৩৮-২২২২২২</a></div>
+    <div>Powered by <a href="#">B2M Technologies Ltd.</a> &nbsp;|&nbsp; <a href="tel:09638222222">০৯৬৩৮-২২২২২২</a> &nbsp;|&nbsp; <a href="{{ route('my-ticket.show') }}">টিকেট খুঁজুন</a></div>
   </div>
 </footer>
 
