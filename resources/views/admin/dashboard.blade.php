@@ -1,0 +1,120 @@
+@extends('admin.layouts.app')
+@section('title', 'ড্যাশবোর্ড')
+@section('page-title', 'ড্যাশবোর্ড')
+
+@section('content')
+<!-- Stat Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-xl-3">
+    <div class="card stat-card h-100" style="background:linear-gradient(135deg,#1e3a8a,#2563eb);color:#fff;">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="small opacity-75 mb-1">মোট টিকেট</div>
+            <div class="stat-number">{{ number_format($stats->total) }}</div>
+          </div>
+          <i class="fas fa-ticket-alt fa-2x opacity-50"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="card stat-card h-100" style="background:linear-gradient(135deg,#065f46,#059669);color:#fff;">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="small opacity-75 mb-1">বিক্রিত</div>
+            <div class="stat-number">{{ number_format($stats->sold) }}</div>
+          </div>
+          <i class="fas fa-check-circle fa-2x opacity-50"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="card stat-card h-100" style="background:linear-gradient(135deg,#92400e,#d97706);color:#fff;">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="small opacity-75 mb-1">অবিক্রীত</div>
+            <div class="stat-number">{{ number_format($stats->unsold) }}</div>
+          </div>
+          <i class="fas fa-hourglass-half fa-2x opacity-50"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="card stat-card h-100" style="background:linear-gradient(135deg,#7c1d6f,#a21caf);color:#fff;">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="small opacity-75 mb-1">মোট আয়</div>
+            <div class="stat-number">৳{{ number_format($stats->revenue, 0) }}</div>
+          </div>
+          <i class="fas fa-taka-sign fa-2x opacity-50"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Progress Bar -->
+@if($stats->total > 0)
+<div class="card mb-4" style="border-radius:1rem;border:none;">
+  <div class="card-body">
+    <div class="d-flex justify-content-between mb-2">
+      <span class="fw-semibold">বিক্রয় অগ্রগতি</span>
+      <span class="text-muted small">{{ $stats->total > 0 ? number_format(($stats->sold / $stats->total) * 100, 1) : 0 }}%</span>
+    </div>
+    <div class="progress" style="height:12px;border-radius:6px;">
+      <div class="progress-bar bg-success" style="width:{{ $stats->total > 0 ? ($stats->sold / $stats->total) * 100 : 0 }}%;border-radius:6px;"></div>
+    </div>
+    <div class="d-flex justify-content-between mt-1">
+      <small class="text-success">{{ number_format($stats->sold) }} বিক্রিত</small>
+      <small class="text-muted">{{ number_format($stats->unsold) }} বাকি</small>
+    </div>
+  </div>
+</div>
+@endif
+
+<!-- Recent Sales -->
+<div class="card" style="border-radius:1rem;border:none;">
+  <div class="card-header bg-white border-0 pt-3 pb-0">
+    <h6 class="fw-bold mb-0"><i class="fas fa-clock me-2 text-primary"></i>সর্বশেষ বিক্রয়</h6>
+  </div>
+  <div class="card-body p-0">
+    @if($recentSold->isEmpty())
+      <div class="text-center text-muted py-4">
+        <i class="fas fa-inbox fa-2x mb-2 d-block opacity-50"></i>
+        এখনও কোনো টিকেট বিক্রি হয়নি।
+      </div>
+    @else
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>টিকেট নম্বর</th>
+            <th>ফোন</th>
+            <th>অপারেটর</th>
+            <th>মূল্য</th>
+            <th>বিক্রয় সময়</th>
+          </tr>
+        </thead>
+        <tbody>
+          @foreach($recentSold as $t)
+          <tr>
+            <td><span class="badge bg-primary fw-normal">{{ $t->ticket_no }}</span></td>
+            <td>{{ $t->phone ?? '-' }}</td>
+            <td>{{ $t->operator ?? '-' }}</td>
+            <td>৳{{ $t->sell_price }}</td>
+            <td class="text-muted small">{{ $t->sold_at ? \Carbon\Carbon::parse($t->sold_at)->format('d M Y, h:i A') : '-' }}</td>
+          </tr>
+          @endforeach
+        </tbody>
+      </table>
+    </div>
+    @endif
+  </div>
+</div>
+@endsection
