@@ -9,189 +9,255 @@
   <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
-      --teal: #0891b2; --teal-dark: #0e7490; --teal-deep: #0c4a6e;
-      --green: #059948; --green-dark: #047a3a; --green-lite: #34d399;
-      --gold: #fbbf24; --glass-bdr: rgba(255,255,255,0.2);
+      --blue:      #1e40af;
+      --blue-mid:  #2563eb;
+      --blue-lite: #eff6ff;
+      --blue-bdr:  #bfdbfe;
+      --green:     #059669;
+      --gold:      #d97706;
+      --text:      #1e293b;
+      --muted:     #64748b;
+      --bg:        #f1f5f9;
+      --card-bg:   #ffffff;
+      --radius:    .9rem;
     }
     * { box-sizing: border-box; }
     body {
-      font-family: 'Hind Siliguri', sans-serif; margin: 0;
-      background: linear-gradient(135deg, #062e18 0%, #0c4a6e 35%, #0e7490 70%, #06b6d4 100%);
-      min-height: 100vh;
+      font-family: 'Hind Siliguri', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
     }
 
-    /* ── HEADER ── */
-    .site-header {
-      background: linear-gradient(135deg, #062e18 0%, #047a3a 40%, #0e7490 100%);
-      padding: 0.6rem 1rem;
-      box-shadow: 0 4px 20px rgba(5,153,72,0.4);
+    /* ── NAVBAR ── */
+    .navbar-top {
+      background: #fff;
+      border-bottom: 1px solid #e2e8f0;
+      padding: .65rem 1rem;
+      box-shadow: 0 1px 8px rgba(30,64,175,.08);
+      position: sticky; top: 0; z-index: 100;
     }
-    .header-logo { height: 44px; }
-    .org-name { color: #fff; font-weight: 700; font-size: 0.88rem; line-height: 1.3; }
-    .org-name small { font-weight: 400; font-size: 0.72rem; opacity: 0.8; display: block; }
-    .govt-badge {
-      background: rgba(255,255,255,0.13); border: 1px solid rgba(255,255,255,0.28);
-      border-radius: 2rem; padding: 0.22rem 0.7rem; color: #fff;
-      font-size: 0.7rem; font-weight: 600; white-space: nowrap; text-decoration: none;
+    .header-logo { height: 40px; }
+    .org-name { font-weight: 700; font-size: .88rem; color: var(--blue); line-height: 1.3; }
+    .org-name small { font-weight: 400; font-size: .7rem; color: var(--muted); display: block; }
+    .nav-badge {
+      background: var(--blue-lite); color: var(--blue);
+      border: 1px solid var(--blue-bdr);
+      border-radius: 2rem; padding: .22rem .7rem;
+      font-size: .72rem; font-weight: 600; white-space: nowrap;
+      text-decoration: none;
     }
+    .nav-badge-green {
+      background: #f0fdf4; color: #065f46;
+      border-color: #a7f3d0;
+    }
+
+    /* ── HERO BANNER ── */
+    .hero-banner {
+      background: linear-gradient(135deg, var(--blue) 0%, var(--blue-mid) 60%, #3b82f6 100%);
+      color: #fff; padding: 1.8rem 1rem 1.5rem;
+    }
+    .hero-banner .big-prize {
+      font-size: clamp(2rem, 6vw, 3.2rem);
+      font-weight: 800; line-height: 1.1;
+    }
+    .hero-banner .sub { font-size: .88rem; opacity: .85; }
+    .price-tag {
+      display: inline-block;
+      background: rgba(255,255,255,.18);
+      border: 2px solid rgba(255,255,255,.45);
+      border-radius: 2rem; padding: .3rem 1.2rem;
+      font-size: 1.4rem; font-weight: 800;
+    }
+    .draw-chip {
+      display: inline-block;
+      background: rgba(255,255,255,.15);
+      border: 1px solid rgba(255,255,255,.3);
+      border-radius: 2rem; padding: .25rem .8rem;
+      font-size: .78rem; font-weight: 600;
+    }
+    .countdown-strip {
+      background: rgba(0,0,0,.2);
+      border-radius: .6rem; padding: .5rem .9rem;
+      display: inline-flex; align-items: center; gap: .5rem;
+      font-size: .82rem; margin-top: .75rem;
+    }
+    #countdown, #countdown-mobile { font-weight: 800; font-size: 1rem; color: #fde68a; }
+
+    /* ── MAIN WRAP ── */
+    .page-wrap { padding: 1.5rem 0 4rem; }
 
     /* ── BUY CARD ── */
     .buy-card {
-      border-radius: 1.5rem; overflow: hidden;
-      background: linear-gradient(160deg, #ffffff 0%, #f0fdff 100%);
-      border: 1px solid rgba(8,145,178,0.2);
-      box-shadow: 0 16px 48px rgba(8,116,144,0.35);
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      border: 1px solid var(--blue-bdr);
+      box-shadow: 0 8px 30px rgba(30,64,175,.12);
+      overflow: hidden;
     }
     .buy-card-header {
-      background: linear-gradient(135deg, #082f49 0%, #0c4a6e 50%, #0e7490 100%);
-      color: #fff; padding: 1.1rem 1.2rem; text-align: center;
-      box-shadow: 0 4px 16px rgba(8,116,144,0.5);
+      background: linear-gradient(135deg, var(--blue), var(--blue-mid));
+      color: #fff; padding: 1rem 1.2rem; text-align: center;
     }
-    .price-pill {
-      background: rgba(255,255,255,0.15); border: 2px solid rgba(255,255,255,0.45);
-      border-radius: 3rem; padding: 0.3rem 1.3rem; display: inline-block;
-      font-size: 1.7rem; font-weight: 800; letter-spacing: 1px;
-    }
-    .buy-card-body { padding: 1.2rem 1.1rem; }
+    .buy-card-body { padding: 1.2rem; }
 
     .phone-group {
-      border-radius: 0.85rem; overflow: hidden;
-      box-shadow: 0 2px 12px rgba(8,145,178,0.15);
-      border: 1.5px solid #a5f3fc;
+      border-radius: .75rem; overflow: hidden;
+      border: 2px solid var(--blue-bdr);
+      transition: border-color .2s;
     }
+    .phone-group:focus-within { border-color: var(--blue-mid); }
     .phone-prefix {
-      background: #ecfeff; font-weight: 700; color: #164e63;
-      border: none; border-right: 1.5px solid #a5f3fc;
-      font-size: 1rem; padding: 0 0.85rem;
+      background: var(--blue-lite); color: var(--blue);
+      font-weight: 700; border: none;
+      border-right: 2px solid var(--blue-bdr);
+      font-size: 1rem; padding: 0 .85rem;
     }
     .phone-input {
-      font-weight: 700; font-size: 1.1rem; border: none;
-      background: #fff; color: #1e293b; padding: 0.72rem 0.7rem;
+      font-weight: 700; font-size: 1.05rem;
+      border: none; background: #fff;
+      color: var(--text); padding: .72rem .7rem;
     }
     .phone-input::placeholder { color: #94a3b8; font-weight: 400; }
-    .phone-input:focus { box-shadow: none; outline: none; background: #fff; }
+    .phone-input:focus { box-shadow: none; outline: none; }
 
     .operator-box {
-      margin-top: 0.55rem; padding: 0.45rem 0.8rem;
-      border-radius: 0.6rem; border: 1.5px solid #cbd5e1;
-      background: #f8fafc; font-size: 0.82rem; color: #475569;
-      transition: all 0.2s; min-height: 36px; display: flex; align-items: center;
+      margin-top: .5rem; padding: .4rem .75rem;
+      border-radius: .6rem; border: 1.5px solid var(--blue-bdr);
+      background: var(--blue-lite); font-size: .82rem; color: var(--blue);
+      display: flex; align-items: center; transition: all .2s;
     }
-    .operator-badge { font-weight: 700; color: #4f46e5; }
+    .operator-badge { font-weight: 700; color: var(--blue); }
 
     .buy-btn {
-      background: linear-gradient(135deg, #047a3a 0%, #059948 50%, #0891b2 100%);
-      border: none; color: #fff; font-weight: 800; font-size: 1.15rem;
-      border-radius: 0.9rem; padding: 0.85rem; width: 100%;
-      box-shadow: 0 8px 28px rgba(5,153,72,0.4);
-      transition: all 0.2s; position: relative; overflow: hidden;
+      background: linear-gradient(135deg, var(--blue) 0%, var(--blue-mid) 100%);
+      border: none; color: #fff; font-weight: 800;
+      font-size: 1.1rem; border-radius: .75rem;
+      padding: .85rem; width: 100%;
+      box-shadow: 0 6px 20px rgba(37,99,235,.35);
+      transition: transform .15s, box-shadow .15s;
       -webkit-tap-highlight-color: transparent;
     }
-    .buy-btn:active { transform: scale(0.97); }
-    .buy-btn:disabled { opacity: 0.65; cursor: not-allowed; }
+    .buy-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(37,99,235,.45); }
+    .buy-btn:active { transform: scale(.97); }
+    .buy-btn:disabled { opacity: .65; cursor: not-allowed; }
 
-    .alert-danger { background: rgba(239,68,68,0.12); border-color: rgba(239,68,68,0.4); color: #dc2626; font-size: 0.88rem; border-radius: 0.7rem; }
-
-    /* ── GLASS CARD ── */
-    .glass-card {
-      background: rgba(255,255,255,0.08); backdrop-filter: blur(16px);
-      border: 1px solid rgba(255,255,255,0.18); border-radius: 1rem;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.2);
-    }
-
-    /* ── COUNTDOWN ── */
-    .countdown-label { color: rgba(255,255,255,0.65); font-size: 0.8rem; font-weight: 600; }
-    #countdown { color: var(--gold); font-size: 1.15rem; font-weight: 800; letter-spacing: 1px; }
-    .countdown-date { color: rgba(255,255,255,0.5); font-size: 0.8rem; }
-
-    /* ── PAGE WRAP ── */
-    .page-wrap { padding: 1rem 0 3rem; }
-
-    /* ── SECTION TITLE ── */
-    .section-title {
-      font-size: 1.05rem; font-weight: 800; color: #fff;
-      border-left: 4px solid var(--green-lite); padding-left: 0.65rem; margin-bottom: 1rem;
+    /* ── SECTION HEADING ── */
+    .sec-title {
+      font-size: 1rem; font-weight: 800; color: var(--blue);
+      border-left: 4px solid var(--blue-mid);
+      padding-left: .6rem; margin-bottom: .9rem;
     }
 
     /* ── PRIZE BANNER ── */
-    .prize-total-banner {
-      background: linear-gradient(135deg, #047a3a 0%, #059948 40%, #0e7490 100%);
-      color: #fff; border-radius: 1rem; padding: 0.9rem 1.1rem;
-      display: flex; align-items: center; justify-content: space-between;
-      flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.9rem;
-      box-shadow: 0 6px 24px rgba(5,153,72,0.4);
+    .prize-banner {
+      background: linear-gradient(135deg, var(--blue), var(--blue-mid));
+      color: #fff; border-radius: var(--radius);
+      padding: 1rem 1.2rem;
+      display: flex; justify-content: space-between;
+      align-items: center; flex-wrap: wrap; gap: .5rem;
+      margin-bottom: .9rem;
+      box-shadow: 0 4px 16px rgba(30,64,175,.2);
     }
-    .prize-total-banner .big-num { font-size: 1.5rem; font-weight: 800; }
+    .prize-banner .num { font-size: 1.6rem; font-weight: 800; }
+    .prize-banner .lbl { font-size: .75rem; opacity: .8; }
 
     /* ── PRIZE GRID ── */
-    .prize-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.6rem; }
+    .prize-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: .6rem; }
     @media (min-width: 480px) { .prize-grid { grid-template-columns: repeat(3, 1fr); } }
-    @media (min-width: 992px) { .prize-grid { grid-template-columns: repeat(3, 1fr); } }
 
     .prize-card {
-      border-radius: 0.9rem; padding: 0.75rem 0.6rem; text-align: center;
-      backdrop-filter: blur(12px); border: 1px solid var(--glass-bdr);
-      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: .8rem .6rem; text-align: center;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 2px 8px rgba(0,0,0,.06);
+      transition: transform .15s, box-shadow .15s;
     }
-    .prize-card.first  { background: linear-gradient(145deg,#3d2a00,#7a5200); border-color: rgba(251,191,36,0.6); }
-    .prize-card.second { background: linear-gradient(145deg,#082f49,#0c4a6e); border-color: rgba(103,232,249,0.5); }
-    .prize-card.third  { background: linear-gradient(145deg,#3b1f05,#6b3c10); border-color: rgba(205,124,47,0.5); }
-    .prize-card.other  { background: linear-gradient(145deg,#052e1a,#0a4a2a); border-color: rgba(52,211,153,0.4); }
-    .prize-rank   { font-size: 0.7rem; font-weight: 700; color: rgba(255,255,255,0.85); margin-bottom: 0.25rem; }
-    .prize-amount { font-size: 1.15rem; font-weight: 800; color: #fff; line-height: 1; }
-    .prize-amount.mega { font-size: 1.5rem; color: #ffe066; text-shadow: 0 0 20px rgba(255,224,102,0.6); }
-    .prize-count  { font-size: 0.7rem; color: rgba(255,255,255,0.65); margin-top: 0.25rem; }
+    .prize-card:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(30,64,175,.12); }
+    .prize-card.first  { border-top: 3px solid #f59e0b; }
+    .prize-card.second { border-top: 3px solid #94a3b8; }
+    .prize-card.third  { border-top: 3px solid #b45309; }
+    .prize-card.other  { border-top: 3px solid var(--blue-mid); }
+    .prize-rank   { font-size: .7rem; font-weight: 600; color: var(--muted); margin-bottom: .2rem; }
+    .prize-amount { font-size: 1.1rem; font-weight: 800; color: var(--text); line-height: 1; }
+    .prize-amount.mega { font-size: 1.4rem; color: #b45309; }
+    .prize-count  { font-size: .68rem; color: var(--muted); margin-top: .2rem; }
+
+    /* ── INFO CARD ── */
+    .info-card {
+      background: var(--card-bg);
+      border: 1px solid #e2e8f0;
+      border-radius: var(--radius);
+      box-shadow: 0 2px 8px rgba(0,0,0,.05);
+    }
 
     /* ── TERMS ── */
-    .terms-item { padding: 0.45rem 0; border-bottom: 1px solid rgba(255,255,255,0.08); font-size: 0.84rem; color: rgba(255,255,255,0.78); }
+    .terms-item {
+      padding: .5rem 0; border-bottom: 1px solid #f1f5f9;
+      font-size: .82rem; color: var(--text);
+      display: flex; gap: .5rem;
+    }
     .terms-item:last-child { border-bottom: none; }
-    .terms-item i { color: var(--green-lite); margin-right: 0.45rem; width: 14px; }
+    .terms-item i { color: var(--blue-mid); flex-shrink: 0; margin-top: 2px; }
+    .terms-item.highlight { color: var(--gold); font-weight: 700; }
+    .terms-item.highlight i { color: var(--gold); }
 
     /* ── ABOUT ── */
     .about-card {
-      background: linear-gradient(135deg, rgba(5,153,72,0.18), rgba(52,211,153,0.08));
-      border: 1px solid rgba(52,211,153,0.35); border-radius: 1rem; padding: 1rem 1.1rem;
+      background: var(--blue-lite);
+      border: 1px solid var(--blue-bdr);
+      border-radius: var(--radius);
+      padding: 1rem 1.1rem;
     }
-    .about-card p { color: rgba(255,255,255,0.85); margin-bottom: 0.5rem; font-size: 0.9rem; }
+    .about-card p { color: var(--text); margin-bottom: .5rem; font-size: .88rem; }
+
+    /* ── HELPLINE CARD ── */
+    .helpline-card {
+      background: #f0fdf4; border: 1px solid #a7f3d0;
+      border-radius: var(--radius); padding: .75rem 1rem;
+      text-align: center;
+    }
+
+    /* ── COUNTDOWN CARD ── */
+    .countdown-card {
+      background: var(--card-bg); border: 1px solid var(--blue-bdr);
+      border-radius: var(--radius); padding: .75rem 1rem; text-align: center;
+    }
+    .countdown-card .lbl { font-size: .75rem; color: var(--muted); margin-bottom: .2rem; }
+    .countdown-card #countdown { color: var(--blue); font-size: 1.1rem; font-weight: 800; }
+    .countdown-card .date { font-size: .75rem; color: var(--muted); margin-top: .15rem; }
 
     /* ── FOOTER ── */
     .site-footer {
-      background: rgba(0,0,0,0.4); backdrop-filter: blur(12px);
-      border-top: 1px solid rgba(255,255,255,0.08);
-      color: rgba(255,255,255,0.5); padding: 1.2rem 1rem; font-size: 0.8rem;
+      background: var(--blue);
+      color: rgba(255,255,255,.75);
+      padding: 1.2rem 1rem; font-size: .8rem; text-align: center;
     }
-    .site-footer a { color: var(--gold); text-decoration: none; }
+    .site-footer a { color: #93c5fd; text-decoration: none; }
 
-    /* ── DRAW BADGE ── */
-    .draw-badge {
-      background: linear-gradient(135deg, #047a3a, #0891b2);
-      color: #fff; border-radius: 2rem; padding: 0.25rem 0.85rem;
-      font-weight: 700; font-size: 0.82rem;
-    }
-    .lottery-title { color: #fff; font-size: 1.05rem; font-weight: 800; }
-
-    /* ── MOBILE: sticky buy button bar ── */
+    /* ── STICKY BUY BAR (mobile) ── */
     .sticky-buy-bar {
       display: none;
       position: fixed; bottom: 0; left: 0; right: 0; z-index: 999;
-      background: linear-gradient(135deg, #062e18, #0c4a6e);
-      border-top: 1px solid rgba(255,255,255,0.15);
-      padding: 0.75rem 1rem; box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
+      background: #fff;
+      border-top: 1px solid #e2e8f0;
+      padding: .75rem 1rem;
+      box-shadow: 0 -4px 16px rgba(0,0,0,.1);
     }
     @media (max-width: 991px) { .sticky-buy-bar { display: block; } }
-    @media (min-width: 992px) { .sticky-col { position: sticky; top: 1rem; } }
+    @media (min-width: 992px) { .sticky-col { position: sticky; top: 5rem; } }
 
     /* ── MODAL ── */
-    .modal-content { border-radius: 1.3rem; overflow: hidden; border: none; }
-    @media (max-width: 575px) {
-      .modal-dialog { margin: 0.5rem; }
-    }
+    .modal-content { border-radius: 1.2rem; overflow: hidden; border: none; }
+
+    .alert-danger { background: #fef2f2; border-color: #fecaca; color: #dc2626; font-size: .88rem; border-radius: .7rem; }
   </style>
 </head>
 <body>
 
-<!-- HEADER -->
-<header class="site-header">
+<!-- NAVBAR -->
+<nav class="navbar-top">
   <div class="container-lg">
     <div class="d-flex align-items-center justify-content-between gap-2">
       <div class="d-flex align-items-center gap-2">
@@ -201,42 +267,78 @@
           <small class="d-none d-sm-block">প্রতিবন্ধী ব্যাক্তিদের উন্নয়নে কর্মরত</small>
         </div>
       </div>
-      <div class="d-flex align-items-center gap-1 flex-shrink-0">
-        <span class="govt-badge d-none d-sm-inline"><i class="fas fa-certificate me-1"></i>সরকার অনুমোদিত</span>
-        <a href="tel:09638222222" class="govt-badge"><i class="fas fa-phone me-1"></i>০৯৬৩৮-২২২২২২</a>
+      <div class="d-flex align-items-center gap-2 flex-shrink-0">
+        <span class="nav-badge nav-badge-green d-none d-sm-inline">
+          <i class="fas fa-certificate me-1"></i>সরকার অনুমোদিত
+        </span>
+        <a href="tel:09638222222" class="nav-badge">
+          <i class="fas fa-phone me-1"></i>০৯৬৩৮-২২২২২২
+        </a>
       </div>
     </div>
   </div>
-</header>
+</nav>
+
+<!-- HERO -->
+<div class="hero-banner">
+  <div class="container-lg">
+    <div class="row align-items-center g-3">
+      <div class="col-lg-7">
+        <div class="draw-chip mb-2">
+          <i class="fas fa-calendar-alt me-1"></i>ড্র: ১৯ জুলাই ২০২৬
+        </div>
+        <div class="big-prize">জিতুন <span style="color:#fde68a;">১০ লক্ষ</span> টাকা!</div>
+        <div class="sub mt-1">বাংলাদেশ প্রতিবন্ধী কল্যাণ সমিতির জাতীয় লটারি-২০২৬</div>
+        <div class="d-flex align-items-center gap-3 mt-2 flex-wrap">
+          <div class="price-tag">মাত্র ২০ টাকা</div>
+          <div class="sub">মোট পুরস্কার <strong style="color:#fde68a;">৫০ লক্ষ টাকা</strong> · ৯৪৮টি পুরস্কার</div>
+        </div>
+        <div class="countdown-strip d-none d-lg-inline-flex">
+          <i class="fas fa-clock"></i>
+          <span>ড্র পর্যন্ত বাকি:</span>
+          <span id="countdown">গণনা হচ্ছে...</span>
+        </div>
+      </div>
+      <!-- mobile countdown -->
+      <div class="col-12 d-lg-none">
+        <div class="countdown-strip">
+          <i class="fas fa-clock"></i>
+          <span>বাকি:</span>
+          <span id="countdown-mobile"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- MAIN -->
 <div class="container-lg page-wrap px-3">
   <div class="row g-3 g-lg-4">
 
-    <!-- LEFT: Buy Card (desktop sticky, mobile top) -->
-    <div class="col-lg-5 order-lg-1 order-1">
+    <!-- LEFT: Buy Card -->
+    <div class="col-lg-4 order-lg-1 order-1">
       <div class="sticky-col">
+
         <!-- Buy Card -->
-        <div class="buy-card">
+        <div class="buy-card mb-3">
           <div class="buy-card-header">
-            <div class="fw-bold mb-1" style="font-size:1rem;">
+            <div class="fw-bold mb-1" style="font-size:.95rem;">
               <i class="fas fa-ticket-alt me-1"></i> টিকেট কিনুন
             </div>
-            <div class="price-pill">২০ টাকা</div>
-            <div class="mt-1 opacity-75" style="font-size:0.82rem;">মোবাইল ব্যালেন্স থেকে কাটা হবে</div>
+            <div class="price-tag" style="font-size:1.5rem;">২০ টাকা</div>
+            <div class="mt-1" style="font-size:.78rem;opacity:.8;">মোবাইল ব্যালেন্স থেকে কাটা হবে</div>
           </div>
           <div class="buy-card-body">
-
             @if($errors->any())
               <div class="alert alert-danger py-2 mb-3">
-                <i class="fas fa-exclamation-circle me-1"></i> {{ $errors->first() }}
+                <i class="fas fa-exclamation-circle me-1"></i>{{ $errors->first() }}
               </div>
             @endif
 
             <form method="POST" action="{{ route('buy.initiate') }}" id="buyForm">
               @csrf
               <div class="mb-3">
-                <label class="form-label fw-bold small mb-1" style="color:#1e293b;">মোবাইল নম্বর</label>
+                <label class="form-label fw-semibold small mb-1" style="color:var(--blue);">মোবাইল নম্বর</label>
                 <div class="input-group phone-group">
                   <span class="input-group-text phone-prefix">88</span>
                   <input type="tel" name="phone" id="phone"
@@ -244,16 +346,13 @@
                          placeholder="01XXXXXXXXX" inputmode="numeric"
                          maxlength="11" value="{{ old('phone') }}" autocomplete="tel">
                 </div>
-                <!-- Operator detect box -->
                 <div class="operator-box" id="operatorBox" style="display:none;">
                   <span id="operatorText"></span>
                 </div>
               </div>
-              <!-- Desktop buy button -->
               <button type="button" class="buy-btn d-none d-lg-block" id="buyBtnDesktop">
                 <i class="fas fa-shopping-cart me-2"></i>এখনই কিনুন
               </button>
-              <!-- Mobile buy button (inline, above sticky bar) -->
               <button type="button" class="buy-btn d-lg-none" id="buyBtnMobile">
                 <i class="fas fa-shopping-cart me-2"></i>এখনই কিনুন — ২০ টাকা
               </button>
@@ -262,59 +361,49 @@
         </div>
 
         <!-- Countdown -->
-        <div class="glass-card mt-3 text-center px-3 py-2 d-none d-lg-block">
-          <div class="countdown-label mb-1">ড্র পর্যন্ত বাকি</div>
-          <div id="countdown">গণনা করা হচ্ছে...</div>
-          <div class="countdown-date mt-1">১৯ জুলাই ২০২৬</div>
+        <div class="countdown-card mb-3 d-none d-lg-block">
+          <div class="lbl">ড্র পর্যন্ত বাকি</div>
+          <div id="countdown-desktop" style="color:var(--blue);font-size:1.05rem;font-weight:800;"></div>
+          <div class="date">১৯ জুলাই ২০২৬</div>
         </div>
 
-        <!-- Helpline desktop -->
-        <div class="glass-card mt-2 py-2 text-center d-none d-lg-block">
-          <a href="tel:09638222222" class="text-decoration-none fw-bold" style="color:#34d399;">
+        <!-- Helpline -->
+        <div class="helpline-card d-none d-lg-block">
+          <a href="tel:09638222222" class="text-decoration-none fw-bold" style="color:#065f46;">
             <i class="fas fa-headset me-2"></i>হেল্পলাইন: ০৯৬৩৮-২২২২২২
           </a>
         </div>
+
+        <!-- Find ticket link -->
+        <div class="text-center mt-2 d-none d-lg-block">
+          <a href="{{ route('my-ticket.show') }}" style="font-size:.8rem;color:var(--blue-mid);">
+            <i class="fas fa-search me-1"></i>আগের টিকেট খুঁজুন
+          </a>
+        </div>
+
       </div>
     </div>
 
-    <!-- RIGHT: Prize + Info -->
-    <div class="col-lg-7 order-lg-2 order-2">
-
-      <!-- Draw date + countdown (mobile) -->
-      <div class="glass-card mb-3 px-3 py-2 d-lg-none d-flex align-items-center justify-content-between flex-wrap gap-2">
-        <div>
-          <span class="lottery-title" style="font-size:0.95rem;"><i class="fas fa-star me-1" style="color:var(--gold);"></i>জাতীয় লটারি-২০২৬</span>
-          <span class="draw-badge ms-2" style="font-size:0.75rem;"><i class="fas fa-calendar-alt me-1"></i>ড্র: ১৯ জুলাই ২০২৬</span>
-        </div>
-        <div class="text-center">
-          <div class="countdown-label">বাকি:</div>
-          <div id="countdown-mobile" style="color:var(--gold);font-size:0.9rem;font-weight:800;letter-spacing:1px;"></div>
-        </div>
-      </div>
-
-      <!-- Draw date (desktop) -->
-      <div class="d-lg-flex d-none align-items-center gap-2 mb-3">
-        <span class="lottery-title"><i class="fas fa-star me-1" style="color:var(--gold);"></i>জাতীয় লটারি-২০২৬</span>
-        <span class="draw-badge"><i class="fas fa-calendar-alt me-1"></i> ড্র: ১৯ জুলাই ২০২৬</span>
-      </div>
+    <!-- RIGHT: Content -->
+    <div class="col-lg-8 order-lg-2 order-2">
 
       <!-- Prize Banner -->
-      <div class="prize-total-banner">
+      <div class="prize-banner">
         <div>
-          <div class="opacity-75 small fw-semibold">মোট পুরস্কার</div>
-          <div class="big-num">৫০ লক্ষ টাকা</div>
-          <div class="opacity-75 small">৯৪৮টি পুরস্কার</div>
+          <div class="lbl">মোট পুরস্কার</div>
+          <div class="num">৫০ লক্ষ টাকা</div>
+          <div class="lbl">৯৪৮টি পুরস্কার</div>
         </div>
         <div class="text-end">
-          <div class="opacity-75 small fw-semibold">টিকেটের মূল্য</div>
-          <div class="big-num">মাত্র ২০ টাকা</div>
-          <div class="opacity-75 small">মোবাইল ব্যালেন্স থেকে</div>
+          <div class="lbl">টিকেটের মূল্য</div>
+          <div class="num">মাত্র ২০ টাকা</div>
+          <div class="lbl">মোবাইল ব্যালেন্স থেকে</div>
         </div>
       </div>
 
       <!-- Prize Grid -->
       <div class="mb-3">
-        <div class="section-title"><i class="fas fa-trophy me-2" style="color:var(--gold);"></i>পুরস্কার তালিকা</div>
+        <div class="sec-title"><i class="fas fa-trophy me-2" style="color:#d97706;"></i>পুরস্কার তালিকা</div>
         <div class="prize-grid">
           <div class="prize-card first">
             <div class="prize-rank">🥇 ১ম পুরস্কার</div>
@@ -323,12 +412,12 @@
           </div>
           <div class="prize-card second">
             <div class="prize-rank">🥈 ২য় পুরস্কার</div>
-            <div class="prize-amount">৫ লক্ষ</div>
+            <div class="prize-amount" style="color:#475569;">৫ লক্ষ</div>
             <div class="prize-count">২টি পুরস্কার</div>
           </div>
           <div class="prize-card third">
             <div class="prize-rank">🥉 ৩য় পুরস্কার</div>
-            <div class="prize-amount">২৫,০০০</div>
+            <div class="prize-amount" style="color:#92400e;">২৫,০০০</div>
             <div class="prize-count">৫টি পুরস্কার</div>
           </div>
           <div class="prize-card other">
@@ -351,51 +440,71 @@
 
       <!-- Terms -->
       <div class="mb-3">
-        <div class="section-title"><i class="fas fa-file-contract me-2" style="color:var(--green-lite);"></i>নিয়মাবলী</div>
-        <div class="glass-card px-3 py-1">
-          <div class="terms-item"><i class="fas fa-check-circle"></i> লটারি ক্রয়ের আগে মোবাইল ব্যালেন্স নিশ্চিত করুন। ২০ টাকা কাটা হবে।</div>
-          <div class="terms-item"><i class="fas fa-check-circle"></i> টিকেট নম্বর অবশ্যই সংরক্ষণ করুন। এটিই পুরস্কার দাবির প্রমাণ।</div>
-          <div class="terms-item"><i class="fas fa-check-circle"></i> একই নম্বর থেকে একাধিক টিকেট কেনা যাবে।</div>
-          <div class="terms-item"><i class="fas fa-check-circle"></i> ড্র অনুষ্ঠান BPKS অফিসিয়াল Facebook পেজে সম্প্রচারিত হবে।</div>
-          <div class="terms-item"><i class="fas fa-check-circle"></i> পুরস্কার বিজয়ীদের SMS-এ জানানো হবে।</div>
-          <div class="terms-item"><i class="fas fa-check-circle"></i> পুরস্কার সংগ্রহে বৈধ জাতীয় পরিচয়পত্র আনতে হবে।</div>
-          <div class="terms-item"><i class="fas fa-check-circle"></i> ড্র তারিখ: ১৯ জুলাই ২০২৬। এর পরে টিকেট বিক্রি বন্ধ।</div>
-          <div class="terms-item"><i class="fas fa-check-circle"></i> এই লটারি বাংলাদেশ সরকার কর্তৃক অনুমোদিত।</div>
+        <div class="sec-title"><i class="fas fa-file-contract me-2" style="color:var(--blue-mid);"></i>নিয়মাবলী</div>
+        <div class="info-card px-3 py-1">
+          <div class="terms-item"><i class="fas fa-check-circle"></i><span>অনুমোদিত ব্যাংক, প্রতিষ্ঠান ও এই পোর্টাল ব্যতীত অন্য কোনো মাধ্যম হতে টিকেট ক্রয় করলে ঐ টিকেটের জন্য বাংলাদেশ প্রতিবন্ধী কল্যাণ সমিতি ও সংশ্লিষ্ট কর্তৃপক্ষ দায়ী থাকবে না।</span></div>
+          <div class="terms-item"><i class="fas fa-check-circle"></i><span>ক্রয়কৃত লটারীর টিকেট নম্বর ও কনফার্মেশন কেবলমাত্র SMS এর মাধ্যমে পাঠানো হবে।</span></div>
+          <div class="terms-item"><i class="fas fa-check-circle"></i><span>SMS না পেলে আপনার মোবাইলের SMS এপ এর SPAM সেকশনে যাচাই করুন। অন্যথায় হেল্পলাইনে (8801701677479 বা 8801732701937) অথবা cservice@b2m-tech.com এ যোগাযোগ করুন।</span></div>
+          <div class="terms-item"><i class="fas fa-check-circle"></i><span>নির্ধারিত তারিখে বাংলাদেশ প্রতিবন্ধী কল্যাণ সমিতি কর্তৃপক্ষ ও বিশিষ্ট ব্যক্তিদের উপস্থিতিতে ঢাকায় ড্র অনুষ্ঠিত হবে।</span></div>
+          <div class="terms-item"><i class="fas fa-check-circle"></i><span>লটারীর ড্র এর নির্ধারিত তারিখ ১৯ জুলাই ২০২৬; বিজয়ীদের তালিকা সংবাদপত্রের মাধ্যমে প্রকাশ করা হবে এবং বর্তমান ওয়েবসাইটেও (bpkslottery.com) বিজয়ীদের তালিকা প্রকাশ হবে।</span></div>
+          <div class="terms-item"><i class="fas fa-check-circle"></i><span>ফলাফল প্রকাশের ৩০ দিনের মধ্যে বিজয়ীদের পুরষ্কারের জন্য নাম ঠিকানা, সত্যায়িত ছবি ও টিকেট প্রাপ্তির এসএমএস সহ লিখিত দাবী কর্তৃপক্ষের নিকট দাখিল করতে হবে।</span></div>
+          <div class="terms-item"><i class="fas fa-check-circle"></i><span>৬ষ্ঠ হতে ৮ম পুরস্কারের ক্ষেত্রে বিজয়ী নম্বর ক, খ, গ, ঘ, ঙ, চ, ছ, জ, ঝ, ঞ প্রত্যেক সিরিজের ক্ষেত্রে প্রযোজ্য হবে।</span></div>
+          <div class="terms-item"><i class="fas fa-check-circle"></i><span>এই মোবাইল লটারি ক্রয় প্রক্রিয়ায় অপারেটর শুধুমাত্র পেমেন্ট পার্টনার হিসেবে বিদ্যমান; লটারি সংক্রান্ত সকল কার্যক্রম সম্পূর্ণরূপে বাংলাদেশ প্রতিবন্ধী কল্যাণ সমিতি কর্তৃক পরিচালিত হয়।</span></div>
+          <div class="terms-item"><i class="fas fa-check-circle"></i><span>লটারি ড্র সম্পন্ন হওয়ার পর বাংলাদেশ প্রতিবন্ধী কল্যাণ সমিতি (বিপিকেএস)-এর ওয়েবসাইটে ফলাফল প্রকাশ করা হবে এবং পরদিন ইত্তেফাক ও সমকাল পত্রিকায় তা প্রকাশিত হবে।</span></div>
+          <div class="terms-item highlight"><i class="fas fa-exclamation-circle"></i><span>এই লটারী সংক্রান্ত যে কোন বিষয়ে বাংলাদেশ প্রতিবন্ধী কল্যাণ সমিতি কর্তৃপক্ষের সিদ্ধান্তই চূড়ান্ত বলে বিবেচিত হবে।</span></div>
         </div>
       </div>
 
       <!-- About -->
       <div class="mb-5 mb-lg-3">
-        <div class="section-title"><i class="fas fa-heart me-2" style="color:#f87171;"></i>আমাদের লক্ষ্য</div>
+        <div class="sec-title"><i class="fas fa-heart me-2" style="color:#ef4444;"></i>আমাদের লক্ষ্য</div>
         <div class="about-card">
-          <p><i class="fas fa-wheelchair me-2" style="color:var(--green-lite);"></i>
+          <p><i class="fas fa-wheelchair me-2" style="color:var(--blue-mid);"></i>
           আপনার প্রতিটি টিকেটের অর্থ সরাসরি ব্যবহৃত হবে <strong>বাংলাদেশ প্রতিবন্ধী কল্যাণ সমিতি</strong>-এর প্রতিবন্ধী মানুষের উন্নয়নে।</p>
-          <p class="mb-0" style="font-size:0.8rem;color:rgba(255,255,255,0.55);">
+          <p class="mb-0" style="font-size:.8rem;color:var(--muted);">
             <i class="fas fa-envelope me-1"></i> nibircorporation88@gmail.com &nbsp;|&nbsp;
             <i class="fas fa-globe me-1"></i> bpkslottery.com
           </p>
         </div>
       </div>
-    </div>
 
+    </div>
   </div>
 </div>
 
 <!-- FOOTER -->
-<footer class="site-footer text-center" style="margin-bottom:70px;" id="siteFooter">
+<footer class="site-footer" style="margin-bottom:64px;" id="siteFooter">
   <div class="container">
     <div class="mb-1">বাংলাদেশ প্রতিবন্ধী কল্যাণ সমিতি (বিপিকেএস) &nbsp;|&nbsp; জাতীয় লটারি-২০২৬</div>
-    <div>Powered by <a href="#">B2M Technologies Ltd.</a> &nbsp;|&nbsp; <a href="tel:09638222222">০৯৬৩৮-২২২২২২</a> &nbsp;|&nbsp; <a href="{{ route('my-ticket.show') }}">টিকেট খুঁজুন</a></div>
+    <div>Powered by <a href="#">B2M Technologies Ltd.</a> &nbsp;|&nbsp;
+      <a href="tel:09638222222">০৯৬৩৮-২২২২২২</a> &nbsp;|&nbsp;
+      <a href="{{ route('my-ticket.show') }}">টিকেট খুঁজুন</a>
+    </div>
   </div>
 </footer>
+
+<!-- STICKY BUY BAR (mobile) -->
+<div class="sticky-buy-bar d-lg-none">
+  <div class="d-flex align-items-center gap-2">
+    <a href="tel:09638222222" class="btn btn-outline-secondary btn-sm rounded-pill flex-shrink-0">
+      <i class="fas fa-headset"></i>
+    </a>
+    <a href="{{ route('my-ticket.show') }}" class="btn btn-outline-primary btn-sm rounded-pill flex-shrink-0" style="font-size:.75rem;">
+      <i class="fas fa-search me-1"></i>টিকেট
+    </a>
+    <div class="flex-fill text-center small fw-bold" style="color:var(--blue);font-size:.72rem;">
+      <i class="fas fa-clock me-1"></i><span id="countdown-bar"></span>
+    </div>
+  </div>
+</div>
 
 <!-- CONFIRM MODAL -->
 <div class="modal fade" id="confirmModal" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered mx-auto" style="max-width:360px;">
     <div class="modal-content shadow-lg">
-      <div class="modal-header border-0 pb-0" style="background:linear-gradient(135deg,#fef3c7,#fde68a);">
-        <h6 class="modal-title fw-bold text-dark">
-          <i class="fas fa-exclamation-triangle text-warning me-2"></i>নিশ্চিতকরণ
+      <div class="modal-header border-0 pb-0" style="background:var(--blue-lite);">
+        <h6 class="modal-title fw-bold" style="color:var(--blue);">
+          <i class="fas fa-exclamation-triangle me-2" style="color:#f59e0b;"></i>নিশ্চিতকরণ
         </h6>
         <button class="btn-close" data-bs-dismiss="modal"></button>
       </div>
@@ -404,7 +513,7 @@
       </div>
       <div class="modal-footer border-0 pt-0 justify-content-center gap-2 pb-3">
         <button class="btn btn-outline-secondary px-3 rounded-pill" data-bs-dismiss="modal">বাতিল</button>
-        <button class="btn btn-success px-4 rounded-pill fw-bold" id="confirmPayBtn">
+        <button class="btn btn-primary px-4 rounded-pill fw-bold" id="confirmPayBtn" style="background:var(--blue);border-color:var(--blue);">
           <i class="fas fa-check me-1"></i> হ্যাঁ, নিশ্চিত
         </button>
       </div>
@@ -440,9 +549,7 @@
     this.value = this.value.replace(/\D/g,'').slice(0,11);
     const op = detectOp(this.value);
     if (op) {
-      operatorBox.style.display      = '';
-      operatorBox.style.borderColor  = '#6366f1';
-      operatorBox.style.background   = '#eef2ff';
+      operatorBox.style.display = '';
       operatorText.innerHTML = `<span class="operator-badge"><i class="fas fa-sim-card me-1"></i>${op}</span> সনাক্ত হয়েছে ✓`;
     } else {
       operatorBox.style.display = 'none';
@@ -455,8 +562,8 @@
     const val = phoneInput.value.replace(/\D/g,'');
     if (!val) { phoneInput.focus(); return; }
     const op = detectOp(val);
-    if (!op) { phoneInput.focus(); phoneInput.style.borderColor='#ef4444'; return; }
-    phoneInput.style.borderColor='';
+    if (!op) { phoneInput.focus(); phoneInput.style.outline='2px solid #ef4444'; return; }
+    phoneInput.style.outline='';
     const display = val.length===11 ? val : '0'+val;
     confirmMsg.innerHTML = `<strong>${op}</strong> নম্বর<br><strong class="text-primary fs-5">${display}</strong><br>থেকে <strong class="text-danger">২০ টাকা</strong> কাটা হবে।`;
     confirmModal.show();
@@ -478,22 +585,30 @@
   function updateCountdown() {
     const target = new Date('2026-07-19T00:00:00+06:00');
     const diff   = target - new Date();
-    if (diff <= 0) { ['countdown','countdown-mobile'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent='ড্র সম্পন্ন'; }); return; }
+    const done   = 'ড্র সম্পন্ন';
+    if (diff <= 0) {
+      ['countdown','countdown-mobile','countdown-desktop','countdown-bar'].forEach(id => {
+        const el = document.getElementById(id); if (el) el.textContent = done;
+      });
+      return;
+    }
     const d = Math.floor(diff/86400000);
     const h = Math.floor((diff%86400000)/3600000);
     const m = Math.floor((diff%3600000)/60000);
     const s = Math.floor((diff%60000)/1000);
     const txt = `${d}d ${h}h ${m}m ${s}s`;
-    ['countdown','countdown-mobile'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent=txt; });
+    ['countdown','countdown-mobile','countdown-desktop','countdown-bar'].forEach(id => {
+      const el = document.getElementById(id); if (el) el.textContent = txt;
+    });
   }
   updateCountdown();
   setInterval(updateCountdown, 1000);
 
-  // Hide sticky footer bar on desktop
+  // Footer margin
   function adjustFooter() {
-    const footer = document.getElementById('siteFooter');
-    if (window.innerWidth >= 992) footer.style.marginBottom = '0';
-    else footer.style.marginBottom = '70px';
+    const f = document.getElementById('siteFooter');
+    if (window.innerWidth >= 992) f.style.marginBottom = '0';
+    else f.style.marginBottom = '64px';
   }
   adjustFooter();
   window.addEventListener('resize', adjustFooter);
