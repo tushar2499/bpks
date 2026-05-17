@@ -71,8 +71,11 @@
       <a href="{{ route('admin.tickets.generate') }}" class="nav-link {{ request()->routeIs('admin.tickets.generate') ? 'active' : '' }}">
         <i class="fas fa-plus-circle fa"></i> টিকেট তৈরি
       </a>
-      <a href="{{ route('admin.reports.index') }}" class="nav-link {{ request()->routeIs('admin.reports.*') ? 'active' : '' }}">
+      <a href="{{ route('admin.reports.index') }}" class="nav-link {{ request()->routeIs('admin.reports.index') ? 'active' : '' }}">
         <i class="fas fa-chart-bar fa"></i> রিপোর্ট
+      </a>
+      <a href="{{ route('admin.reports.sms') }}" class="nav-link {{ request()->routeIs('admin.reports.sms') ? 'active' : '' }}">
+        <i class="fas fa-sms fa"></i> SMS ব্যর্থতা
       </a>
       <a href="{{ route('admin.journey.index') }}" class="nav-link {{ request()->routeIs('admin.journey.*') ? 'active' : '' }}">
         <i class="fas fa-route fa"></i> কাস্টমার জার্নি

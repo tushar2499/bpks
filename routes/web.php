@@ -53,6 +53,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
         Route::get('reports/csv', [ReportController::class, 'exportCsv'])->name('reports.csv');
         Route::get('reports/pdf', [ReportController::class, 'exportPdf'])->name('reports.pdf');
+        Route::get('reports/sms', [ReportController::class, 'smsReport'])->name('reports.sms');
+        Route::post('reports/sms/{transaction}/retry', [ReportController::class, 'retrySms'])->name('reports.sms.retry');
 
         Route::get('journey', [JourneyController::class, 'index'])->name('journey.index');
     });

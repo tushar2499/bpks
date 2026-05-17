@@ -32,13 +32,18 @@ class RobiSmsService
             $to  = $this->toMsisdn($msisdn);
             $url = 'https://apigate.robi.com.bd/Ext/smsmessaging/v1/outbound/tel:+' . $to . '/requests';
 
-            $smsLog = SmsLog::create([
-                'msisdn'  => $to,
-                'message' => $message,
-                'txn_ref' => $txnRef,
-                'url'     => $url,
-                'sent_at' => now(),
-            ]);
+            $smsLog = SmsLog::updateOrCreate(
+                ['txn_ref' => $txnRef],
+                [
+                    'msisdn'         => $to,
+                    'message'        => $message,
+                    'url'            => $url,
+                    'sent_at'        => now(),
+                    'request_body'   => null,
+                    'response'       => null,
+                    'status_message' => null,
+                ]
+            );
 
             $notifyUrl = url('/sms-notify/' . $smsLog->id);
 
@@ -64,7 +69,7 @@ class RobiSmsService
             $responseData = $response->json();
 
             $statusMessage = $responseData['outboundSMSMessageRequest']['deliveryInfoList']['deliveryInfo'][0]['deliveryStatus']
-                ?? 'Unknown';
+                ?? ($response->successful() ? 'Accepted' : 'Failed');
 
             $smsLog->update([
                 'request_body'   => json_encode($body),
