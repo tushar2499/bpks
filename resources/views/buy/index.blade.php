@@ -52,16 +52,6 @@
       border-color: #a7f3d0;
     }
 
-    /* ── HERO BANNER ── */
-    .hero-banner {
-      background: linear-gradient(135deg, var(--blue) 0%, var(--blue-mid) 60%, #3b82f6 100%);
-      color: #fff; padding: 1.8rem 1rem 1.5rem;
-    }
-    .hero-banner .big-prize {
-      font-size: clamp(2rem, 6vw, 3.2rem);
-      font-weight: 800; line-height: 1.1;
-    }
-    .hero-banner .sub { font-size: .88rem; opacity: .85; }
     .price-tag {
       display: inline-block;
       background: rgba(255,255,255,.18);
@@ -69,20 +59,6 @@
       border-radius: 2rem; padding: .3rem 1.2rem;
       font-size: 1.4rem; font-weight: 800;
     }
-    .draw-chip {
-      display: inline-block;
-      background: rgba(255,255,255,.15);
-      border: 1px solid rgba(255,255,255,.3);
-      border-radius: 2rem; padding: .25rem .8rem;
-      font-size: .78rem; font-weight: 600;
-    }
-    .countdown-strip {
-      background: rgba(0,0,0,.2);
-      border-radius: .6rem; padding: .5rem .9rem;
-      display: inline-flex; align-items: center; gap: .5rem;
-      font-size: .82rem; margin-top: .75rem;
-    }
-    #countdown, #countdown-mobile { font-weight: 800; font-size: 1rem; color: #fde68a; }
 
     /* ── MAIN WRAP ── */
     .page-wrap { padding: 1.5rem 0 4rem; }
@@ -278,38 +254,6 @@
     </div>
   </div>
 </nav>
-
-<!-- HERO -->
-<div class="hero-banner">
-  <div class="container-lg">
-    <div class="row align-items-center g-3">
-      <div class="col-lg-7">
-        <div class="draw-chip mb-2">
-          <i class="fas fa-calendar-alt me-1"></i>ড্র: ১৯ জুলাই ২০২৬
-        </div>
-        <div class="big-prize">জিতুন <span style="color:#fde68a;">১০ লক্ষ</span> টাকা!</div>
-        <div class="sub mt-1">বাংলাদেশ প্রতিবন্ধী কল্যাণ সমিতির জাতীয় লটারি-২০২৬</div>
-        <div class="d-flex align-items-center gap-3 mt-2 flex-wrap">
-          <div class="price-tag">মাত্র ২০ টাকা</div>
-          <div class="sub">মোট পুরস্কার <strong style="color:#fde68a;">৫০ লক্ষ টাকা</strong> · ৯৪৮টি পুরস্কার</div>
-        </div>
-        <div class="countdown-strip d-none d-lg-inline-flex">
-          <i class="fas fa-clock"></i>
-          <span>ড্র পর্যন্ত বাকি:</span>
-          <span id="countdown">গণনা হচ্ছে...</span>
-        </div>
-      </div>
-      <!-- mobile countdown -->
-      <div class="col-12 d-lg-none">
-        <div class="countdown-strip">
-          <i class="fas fa-clock"></i>
-          <span>বাকি:</span>
-          <span id="countdown-mobile"></span>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
 
 <!-- MAIN -->
 <div class="container-lg page-wrap px-3">
@@ -587,7 +531,7 @@
     const diff   = target - new Date();
     const done   = 'ড্র সম্পন্ন';
     if (diff <= 0) {
-      ['countdown','countdown-mobile','countdown-desktop','countdown-bar'].forEach(id => {
+      ['countdown-desktop','countdown-bar'].forEach(id => {
         const el = document.getElementById(id); if (el) el.textContent = done;
       });
       return;
