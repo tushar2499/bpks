@@ -9,7 +9,10 @@
         "php": "^8.2",
         "barryvdh/laravel-dompdf": "*",
         "laravel/framework": "^12.0",
-        "laravel/tinker": "^2.10.1"
+        "laravel/horizon": "^5.46",
+        "laravel/octane": "^2.17",
+        "laravel/tinker": "^2.10.1",
+        "spiral/roadrunner": "^2025.1"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
