@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Ticket;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
 
@@ -9,14 +10,25 @@ class TicketImageController extends Controller
 {
     public function download(Request $request)
     {
-        $ref = $request->query('ref');
+        $ref      = $request->query('ref');
+        $wantedNo = $request->query('ticket_no');
 
-        $txn = Transaction::with('ticket')
-            ->where('txn_ref', $ref)
+        $txn = Transaction::where('txn_ref', $ref)
             ->where('status', 'success')
             ->firstOrFail();
 
-        $ticketNo = $txn->ticket->ticket_no;
+        $ids      = $txn->ticket_ids ?? [$txn->ticket_id];
+        $tickets  = Ticket::whereIn('id', array_filter($ids))->get();
+
+        if ($wantedNo) {
+            $ticket = $tickets->firstWhere('ticket_no', $wantedNo);
+            abort_if(!$ticket, 404);
+        } else {
+            $ticket = $tickets->first();
+            abort_if(!$ticket, 404);
+        }
+
+        $ticketNo = $ticket->ticket_no;
 
         $basePath = public_path('bpks-lottery.png');
         $fontPath = public_path('fonts/arialbd.ttf');

@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Transaction extends Model
 {
     protected $fillable = [
-        'txn_ref', 'ticket_id', 'phone', 'operator', 'amount',
+        'txn_ref', 'ticket_id', 'ticket_ids', 'phone', 'operator', 'amount', 'qty',
         'status', 'dcb_txn_id', 'dcb_response', 'failure_reason', 'confirmed_at',
         'nonce', 'consent_url', 'consent_payload', 'consent_initiated_at',
     ];
@@ -17,6 +17,8 @@ class Transaction extends Model
         'consent_initiated_at' => 'datetime',
         'amount'               => 'decimal:2',
         'consent_payload'      => 'array',
+        'ticket_ids'           => 'array',
+        'qty'                  => 'integer',
     ];
 
     public function ticket()

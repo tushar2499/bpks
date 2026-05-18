@@ -144,10 +144,16 @@
   <p class="text-muted mb-0" style="font-size:.88rem;">আপনার লটারি টিকেট নম্বর</p>
 
   <!-- Ticket number display -->
+  @php
+    $allTicketIds = $transaction->ticket_ids ?? [$transaction->ticket_id];
+    $allTickets   = \App\Models\Ticket::whereIn('id', array_filter($allTicketIds))->get();
+  @endphp
+  @foreach($allTickets as $t)
   <div class="ticket-box">
     <div class="ticket-label">টিকেট নম্বর</div>
-    <div class="ticket-number">{{ $transaction->ticket->ticket_no }}</div>
+    <div class="ticket-number">{{ $t->ticket_no }}</div>
   </div>
+  @endforeach
 
   <!-- SMS confirmation note -->
   <div class="sms-note">
@@ -173,10 +179,12 @@
     শুভকামনা! ড্র এর ফলাফল SMS-এ জানানো হবে।
   </p>
 
-  <a href="{{ route('ticket.download', ['ref' => $transaction->txn_ref]) }}"
+  @foreach($allTickets as $t)
+  <a href="{{ route('ticket.download', ['ref' => $transaction->txn_ref, 'ticket_no' => $t->ticket_no]) }}"
      class="btn btn-buy-more mb-2" download>
-    <i class="fas fa-download me-1"></i> টিকেট ডাউনলোড করুন
+    <i class="fas fa-download me-1"></i> ডাউনলোড — {{ $t->ticket_no }}
   </a>
+  @endforeach
   <a href="{{ route('buy.index') }}" class="btn btn-buy-more"
      style="background:linear-gradient(135deg,#64748b,#475569);">
     <i class="fas fa-plus me-1"></i> আরও টিকেট কিনুন

@@ -27,13 +27,13 @@ class RobiConsentService
      * @param  string $callbackUrl  URL Robi redirects the customer back to
      * @return array{nonce: string, created: string, payload: array, consent_url: string, amount_poisha: int}
      */
-    public function buildConsentUrl(string $phone, string $txnRef, string $callbackUrl): array
+    public function buildConsentUrl(string $phone, string $txnRef, string $callbackUrl, ?int $amountPoisha = null): array
     {
         $date         = date('Y-m-d');
         $time         = date('H:i:s');
         $nonce        = $this->nonce($date, $time);
         $created      = $date . 'T' . $time . 'Z';
-        $amountPoisha = config('dcb.robi.dcb_amount'); // base amount excl. VAT/SD/SC
+        $amountPoisha = $amountPoisha ?? config('dcb.robi.dcb_amount'); // base amount excl. VAT/SD/SC
         $digestInput  = $nonce . $amountPoisha . $created . $this->password;
         $digest       = base64_encode(hash('sha256', $digestInput, true));
         $msisdn       = $this->toMsisdn($phone);

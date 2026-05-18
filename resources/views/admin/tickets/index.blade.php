@@ -89,8 +89,10 @@
               <td>
                 @if($ticket->status === 0)
                   <span class="badge badge-unsold px-3 py-2 rounded-pill">অবিক্রীত</span>
-                @else
+                @elseif($ticket->status === 1)
                   <span class="badge badge-sold px-3 py-2 rounded-pill">বিক্রিত</span>
+                @else
+                  <span class="badge bg-warning text-dark px-3 py-2 rounded-pill">সংরক্ষিত</span>
                 @endif
               </td>
               <td>{{ $ticket->phone ?? '-' }}</td>

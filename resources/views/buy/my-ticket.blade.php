@@ -138,24 +138,27 @@
 
   @else
   {{-- Results state --}}
+  @php $totalTickets = collect($ticketsByTxn)->sum(fn($tickets) => $tickets->count()); @endphp
   <div class="mb-1" style="font-size:.82rem;color:#64748b;">
-    <i class="fas fa-mobile-alt me-1"></i>{{ $phone }} — {{ count($transactions) }}টি টিকেট পাওয়া গেছে
+    <i class="fas fa-mobile-alt me-1"></i>{{ $phone }} — {{ $totalTickets }}টি টিকেট পাওয়া গেছে
   </div>
   <hr class="my-2">
 
   @foreach($transactions as $txn)
-  <div class="ticket-row">
-    <div>
-      <div class="ticket-no">{{ $txn->ticket->ticket_no }}</div>
-      <div class="ticket-date">
-        {{ $txn->confirmed_at?->format('d M Y') ?? $txn->created_at->format('d M Y') }}
+    @foreach($ticketsByTxn[$txn->id] as $t)
+    <div class="ticket-row">
+      <div>
+        <div class="ticket-no">{{ $t->ticket_no }}</div>
+        <div class="ticket-date">
+          {{ $txn->confirmed_at?->format('d M Y') ?? $txn->created_at->format('d M Y') }}
+        </div>
       </div>
+      <a href="{{ route('ticket.download', ['ref' => $txn->txn_ref, 'ticket_no' => $t->ticket_no]) }}"
+         class="btn-dl" download>
+        <i class="fas fa-download me-1"></i>ডাউনলোড
+      </a>
     </div>
-    <a href="{{ route('ticket.download', ['ref' => $txn->txn_ref]) }}"
-       class="btn-dl" download>
-      <i class="fas fa-download me-1"></i>ডাউনলোড
-    </a>
-  </div>
+    @endforeach
   @endforeach
 
   <div class="mt-3">

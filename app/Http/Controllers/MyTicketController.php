@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Ticket;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
 
@@ -18,8 +19,7 @@ class MyTicketController extends Controller
 
         $phone = $request->phone;
 
-        $transactions = Transaction::with('ticket')
-            ->where('phone', $phone)
+        $transactions = Transaction::where('phone', $phone)
             ->where('status', 'success')
             ->orderByDesc('confirmed_at')
             ->get();
@@ -28,6 +28,18 @@ class MyTicketController extends Controller
             return back()->withInput()->with('error', 'এই নম্বরে কোনো টিকেট পাওয়া যায়নি।');
         }
 
-        return view('buy.my-ticket', compact('transactions', 'phone'));
+        $allIds    = $transactions->flatMap(fn($t) => $t->ticket_ids ?? [$t->ticket_id])->filter()->unique()->values();
+        $ticketMap = Ticket::whereIn('id', $allIds)->get()->keyBy('id');
+
+        $ticketsByTxn = [];
+        foreach ($transactions as $txn) {
+            $ids = $txn->ticket_ids ?? [$txn->ticket_id];
+            $ticketsByTxn[$txn->id] = collect(array_filter($ids))
+                ->map(fn($id) => $ticketMap->get($id))
+                ->filter()
+                ->values();
+        }
+
+        return view('buy.my-ticket', compact('transactions', 'phone', 'ticketsByTxn'));
     }
 }

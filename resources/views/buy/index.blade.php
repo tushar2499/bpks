@@ -224,6 +224,28 @@
     @media (max-width: 991px) { .sticky-buy-bar { display: block; } }
     @media (min-width: 992px) { .sticky-col { position: sticky; top: 5rem; } }
 
+    /* ── QTY SELECTOR ── */
+    .qty-box { margin-top: .5rem; }
+    .qty-wrap {
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--blue-lite); border: 1.5px solid var(--blue-bdr);
+      border-radius: .75rem; padding: .5rem .75rem;
+    }
+    .qty-label { font-size: .82rem; color: var(--blue); font-weight: 600; }
+    .qty-controls { display: flex; align-items: center; gap: .6rem; }
+    .qty-btn {
+      width: 30px; height: 30px; border-radius: 50%;
+      border: 2px solid var(--blue-mid); background: #fff; color: var(--blue-mid);
+      font-size: 1.15rem; font-weight: 700; line-height: 1;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all .15s; -webkit-tap-highlight-color: transparent;
+      padding: 0;
+    }
+    .qty-btn:hover:not(:disabled) { background: var(--blue-mid); color: #fff; }
+    .qty-btn:disabled { opacity: .35; cursor: not-allowed; }
+    .qty-num { font-size: 1.25rem; font-weight: 800; color: var(--blue); min-width: 1.6rem; text-align: center; }
+    .qty-total-row { font-size: .78rem; color: var(--muted); text-align: right; margin-top: .2rem; }
+
     /* ── MODAL ── */
     .modal-content { border-radius: 1.2rem; overflow: hidden; border: none; }
 
@@ -292,6 +314,18 @@
                 </div>
                 <div class="operator-box" id="operatorBox" style="display:none;">
                   <span id="operatorText"></span>
+                </div>
+                <div class="qty-box" id="qtyBox" style="display:none;">
+                  <div class="qty-wrap">
+                    <div class="qty-label"><i class="fas fa-ticket-alt me-1"></i>টিকেট সংখ্যা</div>
+                    <div class="qty-controls">
+                      <button type="button" class="qty-btn" id="qtyMinus" disabled>−</button>
+                      <span class="qty-num" id="qtyNum">১</span>
+                      <button type="button" class="qty-btn" id="qtyPlus">+</button>
+                    </div>
+                  </div>
+                  <div class="qty-total-row" id="qtyTotalRow">মোট: ২০ টাকা</div>
+                  <input type="hidden" name="qty" id="qtyInput" value="1">
                 </div>
               </div>
               <button type="button" class="buy-btn d-none d-lg-block" id="buyBtnDesktop">
@@ -471,8 +505,17 @@
   const phoneInput   = document.getElementById('phone');
   const operatorBox  = document.getElementById('operatorBox');
   const operatorText = document.getElementById('operatorText');
+  const qtyBox       = document.getElementById('qtyBox');
+  const qtyMinus     = document.getElementById('qtyMinus');
+  const qtyPlus      = document.getElementById('qtyPlus');
+  const qtyNumEl     = document.getElementById('qtyNum');
+  const qtyTotalRow  = document.getElementById('qtyTotalRow');
+  const qtyInput     = document.getElementById('qtyInput');
   const confirmMsg   = document.getElementById('confirmMsg');
   const confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
+
+  const BANGLA_DIGITS = ['০','১','২','৩','৪','৫','৬','৭','৮','৯'];
+  function toBangla(n) { return String(n).split('').map(d => BANGLA_DIGITS[d] ?? d).join(''); }
 
   const OPERATORS = {
     '013':'গ্রামীণফোন','017':'গ্রামীণফোন',
@@ -480,23 +523,48 @@
     '018':'রবি',       '016':'এয়ারটেল (রবি)',
     '015':'টেলিটক',
   };
+  const ROBI_AIRTEL_PREFIXES = new Set(['016','018']);
+
+  let qty = 1;
+
+  function updateQty(n) {
+    qty = Math.max(1, Math.min(5, n));
+    qtyNumEl.textContent   = toBangla(qty);
+    qtyInput.value         = qty;
+    qtyTotalRow.textContent = 'মোট: ' + toBangla(qty * 20) + ' টাকা';
+    qtyMinus.disabled = qty <= 1;
+    qtyPlus.disabled  = qty >= 5;
+  }
+
+  qtyMinus.addEventListener('click', () => updateQty(qty - 1));
+  qtyPlus.addEventListener('click',  () => updateQty(qty + 1));
+
+  function getPrefix(val) {
+    const c = val.replace(/\D/g,'');
+    if (c.length >= 3 && c.startsWith('01')) return c.slice(0,3);
+    if (c.length >= 2 && c[0]==='1')         return '0'+c.slice(0,2);
+    return '';
+  }
 
   function detectOp(val) {
-    const c = val.replace(/\D/g,'');
-    let px = '';
-    if (c.length >= 3 && c.startsWith('01')) px = c.slice(0,3);
-    else if (c.length >= 2 && c[0]==='1')    px = '0'+c.slice(0,2);
-    return OPERATORS[px] || null;
+    return OPERATORS[getPrefix(val)] || null;
   }
 
   phoneInput.addEventListener('input', function () {
     this.value = this.value.replace(/\D/g,'').slice(0,11);
-    const op = detectOp(this.value);
+    const px = getPrefix(this.value);
+    const op = OPERATORS[px] || null;
     if (op) {
       operatorBox.style.display = '';
       operatorText.innerHTML = `<span class="operator-badge"><i class="fas fa-sim-card me-1"></i>${op}</span> সনাক্ত হয়েছে ✓`;
     } else {
       operatorBox.style.display = 'none';
+    }
+    if (op && ROBI_AIRTEL_PREFIXES.has(px)) {
+      qtyBox.style.display = '';
+    } else {
+      qtyBox.style.display = 'none';
+      updateQty(1);
     }
   });
 
@@ -508,8 +576,10 @@
     const op = detectOp(val);
     if (!op) { phoneInput.focus(); phoneInput.style.outline='2px solid #ef4444'; return; }
     phoneInput.style.outline='';
-    const display = val.length===11 ? val : '0'+val;
-    confirmMsg.innerHTML = `<strong>${op}</strong> নম্বর<br><strong class="text-primary fs-5">${display}</strong><br>থেকে <strong class="text-danger">২০ টাকা</strong> কাটা হবে।`;
+    const display  = val.length===11 ? val : '0'+val;
+    const total    = qty * 20;
+    const qtyLine  = qty > 1 ? `<br><span style="font-size:.85rem;color:var(--muted);">${toBangla(qty)} টি টিকেট × ২০ টাকা</span>` : '';
+    confirmMsg.innerHTML = `<strong>${op}</strong> নম্বর<br><strong class="text-primary fs-5">${display}</strong>${qtyLine}<br>থেকে <strong class="text-danger">${toBangla(total)} টাকা</strong> কাটা হবে।`;
     confirmModal.show();
   }
 

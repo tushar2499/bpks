@@ -23,12 +23,16 @@ class BuyController extends Controller
     {
         $request->validate([
             'phone' => ['required', 'regex:/^(\+?880|0)?1[3-9]\d{8}$/'],
+            'qty'   => ['nullable', 'integer', 'min:1', 'max:5'],
         ], [
             'phone.required' => 'মোবাইল নম্বর দিন।',
             'phone.regex'    => 'বৈধ বাংলাদেশী নম্বর দিন।',
+            'qty.min'        => 'কমপক্ষে ১টি টিকেট কিনতে হবে।',
+            'qty.max'        => 'সর্বোচ্চ ৫টি টিকেট কেনা যাবে।',
         ]);
 
         $phone    = $this->normalizePhone($request->phone);
+        $qty      = max(1, min(5, (int) ($request->qty ?? 1)));
         $operator = DCBFactory::detectOperator($phone);
 
         if (!$operator) {
@@ -49,33 +53,43 @@ class BuyController extends Controller
             return back()->withErrors(['phone' => 'আপনার একটি লেনদেন চলছে। ৫ মিনিট পর চেষ্টা করুন।'])->withInput();
         }
 
-        // Atomic: lock an unsold ticket for this operator
-        $result = DB::transaction(function () use ($phone, $operator) {
+        // Atomic: lock qty unsold tickets for this operator
+        $result = DB::transaction(function () use ($phone, $operator, $qty) {
 
-            $ticket = Ticket::where('status', 0)
+            $tickets = Ticket::where('status', 0)
                 ->where('operator', $operator)
+                ->inRandomOrder()
                 ->lockForUpdate()
-                ->first();
+                ->limit($qty)
+                ->get();
 
-            if (!$ticket) {
-                return ['error' => "দুঃখিত! {$operator} এর জন্য কোনো টিকেট পাওয়া যায়নি।"];
+            if ($tickets->count() < $qty) {
+                $found = $tickets->count();
+                return ['error' => $found === 0
+                    ? "দুঃখিত! {$operator} এর জন্য কোনো টিকেট পাওয়া যায়নি।"
+                    : "দুঃখিত! মাত্র {$found}টি টিকেট পাওয়া যাচ্ছে।"];
             }
 
-            $txnRef = 'BPKS' . strtoupper(Str::random(13)); // no hyphen — Robi accepts alphanumeric only
+            $txnRef      = 'BPKS' . strtoupper(Str::random(13)); // no hyphen — Robi accepts alphanumeric only
+            $totalAmount = $tickets->sum('sell_price');
+
+            $ticketIds = $tickets->pluck('id')->all();
 
             $transaction = Transaction::create([
-                'txn_ref'   => $txnRef,
-                'ticket_id' => $ticket->id,
-                'phone'     => $phone,
-                'operator'  => $operator,
-                'amount'    => $ticket->sell_price,
-                'status'    => 'pending',
+                'txn_ref'    => $txnRef,
+                'ticket_id'  => $tickets->first()->id,
+                'ticket_ids' => $ticketIds,
+                'phone'      => $phone,
+                'operator'   => $operator,
+                'amount'     => $totalAmount,
+                'qty'        => $qty,
+                'status'     => 'pending',
             ]);
 
-            // Reserve the ticket
-            $ticket->update(['status' => 2]);
+            // Reserve all tickets
+            Ticket::whereIn('id', $ticketIds)->update(['status' => 2]);
 
-            return ['transaction' => $transaction, 'ticket' => $ticket];
+            return ['transaction' => $transaction, 'tickets' => $tickets];
         });
 
         if (isset($result['error'])) {
@@ -117,11 +131,15 @@ class BuyController extends Controller
     {
         $callbackUrl = route('callback.robi-consent', ['txnRef' => $transaction->txn_ref]);
 
+        $basePoisha  = (int) config('dcb.robi.dcb_amount');
+        $totalPoisha = $basePoisha * max(1, (int) ($transaction->qty ?? 1));
+
         try {
             $consent = (new RobiConsentService())->buildConsentUrl(
                 $transaction->phone,
                 $transaction->txn_ref,
-                $callbackUrl
+                $callbackUrl,
+                $totalPoisha
             );
         } catch (\Throwable $e) {
             Log::error('Robi consent build error', ['txn' => $transaction->txn_ref, 'err' => $e->getMessage()]);
@@ -145,8 +163,8 @@ class BuyController extends Controller
     private function confirmSuccess(Transaction $transaction): \Illuminate\Http\RedirectResponse
     {
         DB::transaction(function () use ($transaction) {
-            $ticket = $transaction->ticket;
-            $ticket->update([
+            $ids = $transaction->ticket_ids ?? [$transaction->ticket_id];
+            Ticket::whereIn('id', array_filter($ids))->update([
                 'status'  => 1,
                 'phone'   => $transaction->phone,
                 'sold_at' => now(),
@@ -173,11 +191,8 @@ class BuyController extends Controller
     private function rollbackTransaction(Transaction $transaction, ?string $reason = null): void
     {
         DB::transaction(function () use ($transaction, $reason) {
-            if ($transaction->ticket_id) {
-                Ticket::where('id', $transaction->ticket_id)
-                    ->where('status', 2)
-                    ->update(['status' => 0]);
-            }
+            $ids = $transaction->ticket_ids ?? [$transaction->ticket_id];
+            Ticket::whereIn('id', array_filter($ids))->where('status', 2)->update(['status' => 0]);
             $transaction->update([
                 'status'         => 'failed',
                 'failure_reason' => $reason,

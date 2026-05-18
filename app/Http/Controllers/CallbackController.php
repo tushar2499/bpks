@@ -57,8 +57,10 @@ class CallbackController extends Controller
 
     private function handleConsentSuccess(Transaction $transaction, ?string $dcbTxnId): \Illuminate\Http\RedirectResponse
     {
-        DB::transaction(function () use ($transaction, $dcbTxnId) {
-            Ticket::where('id', $transaction->ticket_id)
+        $ids = $transaction->ticket_ids ?? [$transaction->ticket_id];
+
+        DB::transaction(function () use ($transaction, $dcbTxnId, $ids) {
+            Ticket::whereIn('id', array_filter($ids))
                 ->where('status', 2)
                 ->update(['status' => 1, 'phone' => $transaction->phone, 'sold_at' => now()]);
 
@@ -70,7 +72,7 @@ class CallbackController extends Controller
         });
 
         ConsentLog::record($transaction->txn_ref, $transaction->phone, 'ticket_assigned', [
-            'ticket_id' => $transaction->ticket_id,
+            'ticket_ids' => $ids,
             'dcb_txn_id' => $dcbTxnId,
         ]);
 
@@ -83,8 +85,10 @@ class CallbackController extends Controller
     {
         $reason = $this->resultMessage($resultCode);
 
-        DB::transaction(function () use ($transaction, $reason) {
-            Ticket::where('id', $transaction->ticket_id)
+        $ids = $transaction->ticket_ids ?? [$transaction->ticket_id];
+
+        DB::transaction(function () use ($transaction, $reason, $ids) {
+            Ticket::whereIn('id', array_filter($ids))
                 ->where('status', 2)
                 ->update(['status' => 0]);
 
@@ -102,32 +106,33 @@ class CallbackController extends Controller
 
     private function sendTicketSms(Transaction $transaction): void
     {
-        $transaction->load('ticket');
-        $ticket = $transaction->ticket;
+        $ids     = $transaction->ticket_ids ?? [$transaction->ticket_id];
+        $tickets = Ticket::whereIn('id', array_filter($ids))->get();
 
-        if (!$ticket) {
-            ConsentLog::record($transaction->txn_ref, $transaction->phone, 'sms_failed', null, 'ticket not found');
+        if ($tickets->isEmpty()) {
+            ConsentLog::record($transaction->txn_ref, $transaction->phone, 'sms_failed', null, 'tickets not found');
             return;
         }
 
-        $amount  = number_format($transaction->amount, 2);
-        $message = "প্রিয় গ্রাহক, আপনার BPKS লটারি টিকেট কেনা সফল হয়েছে।\n"
-                 . "টিকেট নম্বর: {$ticket->ticket_no}\n"
-                 . "মূল্য: ৳{$amount}\n"
-                 . "লেনদেন: {$transaction->txn_ref}";
+        $ticketNos   = $tickets->pluck('ticket_no')->implode(', ');
+        $amount      = number_format($transaction->amount, 2);
+        $message     = "প্রিয় গ্রাহক, আপনার BPKS লটারি টিকেট কেনা সফল হয়েছে।\n"
+                     . "টিকেট নম্বর: {$ticketNos}\n"
+                     . "মূল্য: ৳{$amount}\n"
+                     . "লেনদেন: {$transaction->txn_ref}";
 
         try {
-            $sms    = new RobiSmsService();
-            $sent   = $sms->send($transaction->phone, $message, $transaction->txn_ref);
-            $step   = $sent ? 'sms_sent' : 'sms_failed';
-            $note   = $sent ? null : 'SMS service returned false';
+            $sms  = new RobiSmsService();
+            $sent = $sms->send($transaction->phone, $message, $transaction->txn_ref);
+            $step = $sent ? 'sms_sent' : 'sms_failed';
+            $note = $sent ? null : 'SMS service returned false';
         } catch (\Throwable $e) {
             Log::error('Ticket SMS error', ['txn' => $transaction->txn_ref, 'err' => $e->getMessage()]);
             $step = 'sms_failed';
             $note = $e->getMessage();
         }
 
-        ConsentLog::record($transaction->txn_ref, $transaction->phone, $step, ['ticket_no' => $ticket->ticket_no], $note);
+        ConsentLog::record($transaction->txn_ref, $transaction->phone, $step, ['ticket_nos' => $ticketNos], $note);
     }
 
     private function resultMessage(string $code): string
@@ -216,20 +221,22 @@ class CallbackController extends Controller
             return response()->json(['result' => 'not_found'], 200);
         }
 
-        DB::transaction(function () use ($transaction, $success, $dcbTxnId, $raw) {
+        $ids = $transaction->ticket_ids ?? [$transaction->ticket_id];
+
+        DB::transaction(function () use ($transaction, $success, $dcbTxnId, $raw, $ids) {
             $transaction->update([
                 'dcb_txn_id'   => $dcbTxnId,
                 'dcb_response' => json_encode($raw),
             ]);
 
             if ($success) {
-                Ticket::where('id', $transaction->ticket_id)
+                Ticket::whereIn('id', array_filter($ids))
                     ->where('status', 2)
                     ->update(['status' => 1, 'phone' => $transaction->phone, 'sold_at' => now()]);
 
                 $transaction->update(['status' => 'success', 'confirmed_at' => now()]);
             } else {
-                Ticket::where('id', $transaction->ticket_id)
+                Ticket::whereIn('id', array_filter($ids))
                     ->where('status', 2)
                     ->update(['status' => 0]);
 
