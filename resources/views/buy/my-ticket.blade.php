@@ -104,6 +104,40 @@
     .btn-back:hover { color: #fff; }
 
     .footer-note { font-size: .72rem; color: #94a3b8; margin-top: 1rem; text-align: center; }
+
+    /* Download overlay */
+    .dl-overlay {
+      display: none;
+      position: fixed; inset: 0; z-index: 9999;
+      background: rgba(15,23,42,.72);
+      backdrop-filter: blur(4px);
+      align-items: center; justify-content: center;
+      flex-direction: column; gap: 1rem;
+    }
+    .dl-overlay.show { display: flex; }
+    .dl-spinner {
+      width: 56px; height: 56px;
+      border: 5px solid rgba(255,255,255,.2);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .dl-text {
+      color: #fff; font-size: 1.05rem; font-weight: 700;
+      letter-spacing: .5px;
+    }
+    .dl-dots::after {
+      content: '';
+      animation: dots 1.5s steps(4, end) infinite;
+    }
+    @keyframes dots {
+      0%   { content: ''; }
+      25%  { content: '.'; }
+      50%  { content: '..'; }
+      75%  { content: '...'; }
+      100% { content: ''; }
+    }
   </style>
 </head>
 <body>
@@ -139,13 +173,21 @@
   @else
   {{-- Results state --}}
   @php $totalTickets = collect($ticketsByTxn)->sum(fn($tickets) => $tickets->count()); @endphp
-  <div class="mb-1" style="font-size:.82rem;color:#64748b;">
+  <div class="mb-2" style="font-size:.82rem;color:#64748b;">
     <i class="fas fa-mobile-alt me-1"></i>{{ $phone }} — {{ $totalTickets }}টি টিকেট পাওয়া গেছে
   </div>
+
+  <a href="{{ route('ticket.download-all-pdf', ['phone' => $phone]) }}"
+     class="btn-dl d-block text-center mb-3 py-2" download
+     style="background:linear-gradient(135deg,#1e40af,#2563eb);border-radius:.75rem;font-size:.9rem;">
+    <i class="fas fa-file-pdf me-1"></i>সব টিকেট PDF ডাউনলোড ({{ $totalTickets }}টি)
+  </a>
+
   <hr class="my-2">
 
   @foreach($transactions as $txn)
-    @foreach($ticketsByTxn[$txn->id] as $t)
+  @php $txnTickets = $ticketsByTxn[$txn->id]; @endphp
+    @foreach($txnTickets as $t)
     <div class="ticket-row">
       <div>
         <div class="ticket-no">{{ $t->ticket_no }}</div>
@@ -153,10 +195,6 @@
           {{ $txn->confirmed_at?->format('d M Y') ?? $txn->created_at->format('d M Y') }}
         </div>
       </div>
-      <a href="{{ route('ticket.download', ['ref' => $txn->txn_ref, 'ticket_no' => $t->ticket_no]) }}"
-         class="btn-dl" download>
-        <i class="fas fa-download me-1"></i>ডাউনলোড
-      </a>
     </div>
     @endforeach
   @endforeach
@@ -176,5 +214,35 @@
 
   <div class="footer-note">হেল্পলাইন: ০৯৬৩৮-২২২২২২ &nbsp;·&nbsp; Powered by B2M Technologies Ltd.</div>
 </div>
+
+<!-- Download overlay -->
+<div class="dl-overlay" id="dlOverlay">
+  <div class="dl-spinner"></div>
+  <div class="dl-text">ডাউনলোড হচ্ছে<span class="dl-dots"></span></div>
+</div>
+
+<script>
+(function () {
+  const overlay = document.getElementById('dlOverlay');
+
+  document.querySelectorAll('a[download]').forEach(function (link) {
+    link.addEventListener('click', function () {
+      overlay.classList.add('show');
+      // Hide after 8s max — covers slow PDF generation
+      setTimeout(function () { overlay.classList.remove('show'); }, 8000);
+    });
+  });
+
+  // Cookie-based detection: server sets 'dl_ready' cookie when PDF is sent
+  // Fallback: just rely on timeout above
+  var poll = setInterval(function () {
+    if (document.cookie.split(';').some(function (c) { return c.trim().startsWith('dl_ready='); })) {
+      overlay.classList.remove('show');
+      document.cookie = 'dl_ready=; Max-Age=0; path=/';
+      clearInterval(poll);
+    }
+  }, 500);
+})();
+</script>
 </body>
 </html>

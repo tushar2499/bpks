@@ -142,21 +142,23 @@
             'time' => $l->created_at?->format('H:i:s') ?? '',
           ])->toArray();
 
+          $ticketNos = $txn->resolved_ticket_nos ?? [];
           $journeyData = json_encode([
-            'phone'      => $txn->phone,
-            'operator'   => $txn->operator,
-            'txn_ref'    => $txn->txn_ref,
-            'amount'     => '৳'.number_format($txn->amount, 2),
-            'status'     => $txn->status,
-            'ticket_no'  => $txn->ticket?->ticket_no ?? null,
-            'dcb_txn'    => $txn->dcb_txn_id ?? null,
-            'date'       => $txn->created_at->format('d M Y H:i:s'),
-            'nonce'      => $txn->nonce ?? null,
-            'initiated'  => $txn->consent_initiated_at?->format('H:i:s') ?? null,
-            'confirmed'  => $txn->confirmed_at?->format('H:i:s') ?? null,
-            'failure'    => $txn->failure_reason ?? null,
-            'dcb_resp'   => $txn->dcb_response ?? null,
-            'logs'       => $logs,
+            'phone'       => $txn->phone,
+            'operator'    => $txn->operator,
+            'txn_ref'     => $txn->txn_ref,
+            'amount'      => '৳'.number_format($txn->amount, 2),
+            'status'      => $txn->status,
+            'ticket_nos'  => $ticketNos,
+            'qty'         => count($ticketNos) ?: ($txn->qty ?? 1),
+            'dcb_txn'     => $txn->dcb_txn_id ?? null,
+            'date'        => $txn->created_at->format('d M Y H:i:s'),
+            'nonce'       => $txn->nonce ?? null,
+            'initiated'   => $txn->consent_initiated_at?->format('H:i:s') ?? null,
+            'confirmed'   => $txn->confirmed_at?->format('H:i:s') ?? null,
+            'failure'     => $txn->failure_reason ?? null,
+            'dcb_resp'    => $txn->dcb_response ?? null,
+            'logs'        => $logs,
             'sms' => $txn->smsLog ? [
               'status'  => $txn->smsLog->status_message,
               'sent_at' => $txn->smsLog->sent_at?->format('H:i:s') ?? null,
@@ -170,7 +172,13 @@
           <td class="small font-monospace" style="font-size:.7rem;">{{ $txn->txn_ref }}</td>
           <td class="small">৳{{ number_format($txn->amount, 2) }}</td>
           <td><span class="sbadge {{ $statusClass }}">{{ ucfirst($txn->status) }}</span></td>
-          <td class="small font-monospace fw-bold">{{ $txn->ticket?->ticket_no ?? '—' }}</td>
+          <td class="small font-monospace fw-bold">
+            @if(count($ticketNos))
+              <span class="text-muted me-1" style="font-size:.68rem;">({{ count($ticketNos) }})</span>{{ implode(', ', $ticketNos) }}
+            @else
+              —
+            @endif
+          </td>
           <td class="pe-3 small font-monospace" style="font-size:.7rem;">{{ $txn->dcb_txn_id ?? '—' }}</td>
         </tr>
         @empty
@@ -301,8 +309,8 @@ document.querySelectorAll('.journey-row').forEach(row => {
     jmHero.innerHTML =
       pill('পরিমাণ', d.amount) +
       pill('স্ট্যাটাস', d.status.toUpperCase(), fc).replace('jm-pill"', `jm-pill" style="background:${bc}"`) +
-      (d.ticket_no ? pill('টিকেট নং', d.ticket_no, '#b91c1c') : '') +
-      (d.dcb_txn   ? pill('DCB TXN', `<span style="font-size:.7rem;word-break:break-all">${d.dcb_txn}</span>`) : '');
+      pill('টিকেট সংখ্যা', d.qty ?? '—', '#1d4ed8') +
+      (d.dcb_txn ? pill('DCB TXN', `<span style="font-size:.7rem;word-break:break-all">${d.dcb_txn}</span>`) : '');
 
     // Timeline
     if (d.logs.length === 0) {
@@ -321,8 +329,13 @@ document.querySelectorAll('.journey-row').forEach(row => {
     }
 
     // Details
+    const ticketNosHtml = d.ticket_nos && d.ticket_nos.length
+      ? d.ticket_nos.map(n => `<span class="font-monospace fw-bold" style="color:#b91c1c;margin-right:.35rem">${n}</span>`).join('')
+      : null;
     jmDet.innerHTML =
-      detRow('TXN REF',   `<span class="font-monospace" style="font-size:.7rem">${d.txn_ref}</span>`) +
+      detRow('TXN REF',    `<span class="font-monospace" style="font-size:.7rem">${d.txn_ref}</span>`) +
+      detRow('টিকেট সংখ্যা', d.qty ?? '—') +
+      (ticketNosHtml ? detRow('টিকেট নম্বর', ticketNosHtml) : '') +
       detRow('Nonce',     d.nonce ? `<span class="font-monospace" style="font-size:.7rem">${d.nonce}</span>` : null) +
       detRow('Initiated', d.initiated) +
       detRow('Confirmed', d.confirmed) +

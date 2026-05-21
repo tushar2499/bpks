@@ -23,16 +23,16 @@ class BuyController extends Controller
     {
         $request->validate([
             'phone' => ['required', 'regex:/^(\+?880|0)?1[3-9]\d{8}$/'],
-            'qty'   => ['nullable', 'integer', 'min:1', 'max:5'],
+            'qty'   => ['nullable', 'integer', 'min:1', 'max:10'],
         ], [
             'phone.required' => 'মোবাইল নম্বর দিন।',
             'phone.regex'    => 'বৈধ বাংলাদেশী নম্বর দিন।',
             'qty.min'        => 'কমপক্ষে ১টি টিকেট কিনতে হবে।',
-            'qty.max'        => 'সর্বোচ্চ ৫টি টিকেট কেনা যাবে।',
+            'qty.max'        => 'সর্বোচ্চ ১০টি টিকেট কেনা যাবে।',
         ]);
 
         $phone    = $this->normalizePhone($request->phone);
-        $qty      = max(1, min(5, (int) ($request->qty ?? 1)));
+        $qty      = max(1, min(10, (int) ($request->qty ?? 1)));
         $operator = DCBFactory::detectOperator($phone);
 
         if (!$operator) {
@@ -43,14 +43,14 @@ class BuyController extends Controller
             return back()->withErrors(['phone' => 'Teletalk এখনো সাপোর্ট করা হয়নি।'])->withInput();
         }
 
-        // Rate limit: 1 pending purchase per phone per 5 minutes
+        // Rate limit: 1 pending purchase per phone per 2 minutes
         $recentTxn = Transaction::where('phone', $phone)
             ->where('status', 'pending')
-            ->where('created_at', '>=', now()->subMinutes(5))
+            ->where('created_at', '>=', now()->subMinutes(2))
             ->exists();
 
         if ($recentTxn) {
-            return back()->withErrors(['phone' => 'আপনার একটি লেনদেন চলছে। ৫ মিনিট পর চেষ্টা করুন।'])->withInput();
+            return back()->withErrors(['phone' => 'আপনার একটি লেনদেন চলছে। ২ মিনিট পর চেষ্টা করুন।'])->withInput();
         }
 
         // Atomic: lock qty unsold tickets for this operator

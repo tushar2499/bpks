@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(php -r ' *)",
+      "Bash(php -r 'require '\\\\''vendor/autoload.php'\\\\''; $app = require '\\\\''bootstrap/app.php'\\\\''; echo '\\\\''OK'\\\\'';')",
+      "Bash(php -r \"echo \\\\Illuminate\\\\Foundation\\\\Application::VERSION;\")",
+      "Bash(php -r \"echo opcache_get_status\\(\\) ? 'opcache ON' : 'opcache OFF';\")",
+      "Bash(git pull *)",
+      "Bash(git stash *)",
+      "Bash(Move-Item \"d:\\\\b2m\\\\bpks-app\\\\robi_consent_test.php\" \"d:\\\\b2m\\\\bpks-app\\\\public\\\\robi_consent_test.php\")"
+    ]
+  }
+}

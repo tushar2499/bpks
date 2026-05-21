@@ -80,6 +80,9 @@
       <a href="{{ route('admin.journey.index') }}" class="nav-link {{ request()->routeIs('admin.journey.*') ? 'active' : '' }}">
         <i class="fas fa-route fa"></i> কাস্টমার জার্নি
       </a>
+      <a href="{{ route('admin.customer-care.index') }}" class="nav-link {{ request()->routeIs('admin.customer-care.*') ? 'active' : '' }}">
+        <i class="fas fa-headset fa"></i> কাস্টমার কেয়ার
+      </a>
     </div>
     <div class="sidebar-footer">
       <form action="{{ route('admin.logout') }}" method="POST">

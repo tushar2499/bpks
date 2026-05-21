@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AuthController;
+use App\Http\Controllers\Admin\CustomerCareController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\JourneyController;
 use App\Http\Controllers\Admin\ReportController;
@@ -9,6 +10,7 @@ use App\Http\Controllers\BuyController;
 use App\Http\Controllers\CallbackController;
 use App\Http\Controllers\MyTicketController;
 use App\Http\Controllers\TicketImageController;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 
@@ -18,6 +20,8 @@ Route::post('/buy', [BuyController::class, 'initiate'])->name('buy.initiate')
     ->middleware('throttle:10,1');  // 10 req/min per IP
 Route::get('/buy/success', [BuyController::class, 'success'])->name('buy.success');
 Route::get('/ticket/download', [TicketImageController::class, 'download'])->name('ticket.download');
+Route::get('/ticket/download-pdf', [TicketImageController::class, 'downloadPdf'])->name('ticket.download-pdf');
+Route::get('/ticket/download-all-pdf', [TicketImageController::class, 'downloadAllPdf'])->name('ticket.download-all-pdf');
 Route::get('/my-ticket', [MyTicketController::class, 'show'])->name('my-ticket.show');
 Route::post('/my-ticket', [MyTicketController::class, 'find'])->name('my-ticket.find')
     ->middleware('throttle:3,60');
@@ -63,5 +67,15 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('reports/sms/{transaction}/retry', [ReportController::class, 'retrySms'])->name('reports.sms.retry');
 
         Route::get('journey', [JourneyController::class, 'index'])->name('journey.index');
+
+        Route::get('customer-care', [CustomerCareController::class, 'index'])->name('customer-care.index');
+
+        Route::get('cache/clear', function () {
+            Artisan::call('cache:clear');
+            Artisan::call('config:clear');
+            Artisan::call('route:clear');
+            Artisan::call('view:clear');
+            return redirect()->back()->with('success', 'All caches cleared.');
+        })->name('cache.clear');
     });
 });

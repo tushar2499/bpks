@@ -21,12 +21,23 @@ class CallbackController extends Controller
 
         $transaction = Transaction::where('txn_ref', $txnRef)
             ->where('operator', 'Robi')
-            ->where('status', 'pending')
             ->first();
 
         if (!$transaction) {
-            Log::warning('Robi consent callback: txn not found or not pending', ['txn_ref' => $txnRef]);
+            Log::warning('Robi consent callback: txn not found', ['txn_ref' => $txnRef]);
             return redirect()->route('buy.index')->withErrors(['phone' => 'লেনদেন পাওয়া যায়নি।']);
+        }
+
+        // Async callback already processed this transaction before browser redirect arrived
+        if ($transaction->status === 'success') {
+            Log::info('Robi consent callback: already success (async arrived first)', ['txn_ref' => $txnRef]);
+            return redirect()->route('buy.success', ['ref' => $transaction->txn_ref]);
+        }
+
+        if ($transaction->status === 'failed') {
+            Log::info('Robi consent callback: already failed (async arrived first)', ['txn_ref' => $txnRef]);
+            return redirect()->route('buy.index')
+                ->withErrors(['phone' => 'পেমেন্ট ব্যর্থ হয়েছে: ' . ($transaction->failure_reason ?? 'অজানা ত্রুটি')]);
         }
 
         $resultCode    = (string) $request->query('resultCode', '');

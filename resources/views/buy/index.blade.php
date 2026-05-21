@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BPKS জাতীয় লটারি-২০২৬ | বিশ টাকায় জিতুন ১০ লক্ষ টাকা</title>
+  <title>BPKS জাতীয় লটারি-২০২৬ | বিশ টাকায় জিতুন ৩০ লক্ষ টাকা</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -127,20 +127,15 @@
 
     /* ── PRIZE BANNER ── */
     .prize-banner {
-      background: linear-gradient(135deg, var(--blue), var(--blue-mid));
-      color: #fff; border-radius: var(--radius);
-      padding: 1rem 1.2rem;
-      display: flex; justify-content: space-between;
-      align-items: center; flex-wrap: wrap; gap: .5rem;
+      border-radius: var(--radius);
       margin-bottom: .9rem;
-      box-shadow: 0 4px 16px rgba(30,64,175,.2);
+      overflow: hidden;
     }
-    .prize-banner .num { font-size: 1.6rem; font-weight: 800; }
-    .prize-banner .lbl { font-size: .75rem; opacity: .8; }
+    .prize-banner img { width: 100%; height: auto; display: block; }
 
     /* ── PRIZE GRID ── */
     .prize-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: .6rem; }
-    @media (min-width: 480px) { .prize-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (min-width: 480px) { .prize-grid { grid-template-columns: repeat(4, 1fr); } }
 
     .prize-card {
       background: var(--card-bg);
@@ -269,9 +264,7 @@
         <span class="nav-badge nav-badge-green d-none d-sm-inline">
           <i class="fas fa-certificate me-1"></i>সরকার অনুমোদিত
         </span>
-        <a href="tel:09638222222" class="nav-badge">
-          <i class="fas fa-phone me-1"></i>০৯৬৩৮-২২২২২২
-        </a>
+
       </div>
     </div>
   </div>
@@ -367,16 +360,7 @@
 
       <!-- Prize Banner -->
       <div class="prize-banner">
-        <div>
-          <div class="lbl">মোট পুরস্কার</div>
-          <div class="num">৫০ লক্ষ টাকা</div>
-          <div class="lbl">৯৪৮টি পুরস্কার</div>
-        </div>
-        <div class="text-end">
-          <div class="lbl">টিকেটের মূল্য</div>
-          <div class="num">মাত্র ২০ টাকা</div>
-          <div class="lbl">মোবাইল ব্যালেন্স থেকে</div>
-        </div>
+        <img src="{{ asset('banner.webp') }}" alt="Prize Banner">
       </div>
 
       <!-- Prize Grid -->
@@ -385,33 +369,76 @@
         <div class="prize-grid">
           <div class="prize-card first">
             <div class="prize-rank">🥇 ১ম পুরস্কার</div>
-            <div class="prize-amount mega">১০ লক্ষ</div>
+            <div class="prize-amount mega">৩০ লক্ষ</div>
             <div class="prize-count">১টি পুরস্কার</div>
           </div>
           <div class="prize-card second">
             <div class="prize-rank">🥈 ২য় পুরস্কার</div>
-            <div class="prize-amount" style="color:#475569;">৫ লক্ষ</div>
-            <div class="prize-count">২টি পুরস্কার</div>
+            <div class="prize-amount" style="color:#475569;">৭ লক্ষ</div>
+            <div class="prize-count">১টি পুরস্কার</div>
           </div>
           <div class="prize-card third">
             <div class="prize-rank">🥉 ৩য় পুরস্কার</div>
-            <div class="prize-amount" style="color:#92400e;">২৫,০০০</div>
-            <div class="prize-count">৫টি পুরস্কার</div>
+            <div class="prize-amount" style="color:#92400e;">৫০,০০০</div>
+            <div class="prize-count">৩টি পুরস্কার</div>
           </div>
           <div class="prize-card other">
             <div class="prize-rank">৪র্থ পুরস্কার</div>
-            <div class="prize-amount">১০,০০০</div>
-            <div class="prize-count">৪০টি পুরস্কার</div>
+            <div class="prize-amount">২৫,০০০</div>
+            <div class="prize-count">২টি পুরস্কার</div>
           </div>
           <div class="prize-card other">
             <div class="prize-rank">৫ম পুরস্কার</div>
-            <div class="prize-amount">২,০০০</div>
-            <div class="prize-count">২০০টি পুরস্কার</div>
+            <div class="prize-amount">২০,০০০</div>
+            <div class="prize-count">১টি পুরস্কার</div>
           </div>
           <div class="prize-card other">
-            <div class="prize-rank">৬ষ্ঠ–৮ম</div>
-            <div class="prize-amount">বিভিন্ন</div>
-            <div class="prize-count">৭০০টি পুরস্কার</div>
+            <div class="prize-rank">৬ষ্ঠ পুরস্কার</div>
+            <div class="prize-amount">৫,০০০</div>
+            <div class="prize-count">১০টি পুরস্কার</div>
+          </div>
+          <div class="prize-card other">
+            <div class="prize-rank">৭ম পুরস্কার</div>
+            <div class="prize-amount">২,০০০</div>
+            <div class="prize-count">১০০টি পুরস্কার</div>
+          </div>
+          <div class="prize-card other">
+            <div class="prize-rank">৮ম পুরস্কার</div>
+            <div class="prize-amount">১,০০০</div>
+            <div class="prize-count">৮৩০টি পুরস্কার</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Customer Care WhatsApp -->
+      <div class="mb-3">
+        <div class="sec-title"><i class="fab fa-whatsapp me-2" style="color:#25d366;"></i>কাস্টমার কেয়ার (WhatsApp)</div>
+        <div class="info-card px-3 py-2">
+          <div class="row g-2">
+            <div class="col-6">
+              <a href="https://wa.me/8801708400182" target="_blank" class="d-flex align-items-center gap-2 text-decoration-none" style="color:#065f46;">
+                <i class="fab fa-whatsapp" style="color:#25d366;font-size:1.1rem;"></i>
+                <span style="font-size:.85rem;font-weight:600;">+880 1708-400182</span>
+              </a>
+            </div>
+            <div class="col-6">
+              <a href="https://wa.me/8801701677479" target="_blank" class="d-flex align-items-center gap-2 text-decoration-none" style="color:#065f46;">
+                <i class="fab fa-whatsapp" style="color:#25d366;font-size:1.1rem;"></i>
+                <span style="font-size:.85rem;font-weight:600;">+880 1701-677479</span>
+              </a>
+            </div>
+            <div class="col-6">
+              <a href="https://wa.me/8801942295196" target="_blank" class="d-flex align-items-center gap-2 text-decoration-none" style="color:#065f46;">
+                <i class="fab fa-whatsapp" style="color:#25d366;font-size:1.1rem;"></i>
+                <span style="font-size:.85rem;font-weight:600;">+880 1942-295196</span>
+              </a>
+            </div>
+            <div class="col-6">
+              <a href="https://wa.me/8801853297958" target="_blank" class="d-flex align-items-center gap-2 text-decoration-none" style="color:#065f46;">
+                <i class="fab fa-whatsapp" style="color:#25d366;font-size:1.1rem;"></i>
+                <span style="font-size:.85rem;font-weight:600;">+880 1853-297958</span>
+              </a>
+            </div>
           </div>
         </div>
       </div>
@@ -422,11 +449,11 @@
         <div class="info-card px-3 py-1">
           <div class="terms-item"><i class="fas fa-check-circle"></i><span>অনুমোদিত ব্যাংক, প্রতিষ্ঠান ও এই পোর্টাল ব্যতীত অন্য কোনো মাধ্যম হতে টিকেট ক্রয় করলে ঐ টিকেটের জন্য বাংলাদেশ প্রতিবন্ধী কল্যাণ সমিতি ও সংশ্লিষ্ট কর্তৃপক্ষ দায়ী থাকবে না।</span></div>
           <div class="terms-item"><i class="fas fa-check-circle"></i><span>ক্রয়কৃত লটারীর টিকেট নম্বর ও কনফার্মেশন কেবলমাত্র SMS এর মাধ্যমে পাঠানো হবে।</span></div>
-          <div class="terms-item"><i class="fas fa-check-circle"></i><span>SMS না পেলে আপনার মোবাইলের SMS এপ এর SPAM সেকশনে যাচাই করুন। অন্যথায় হেল্পলাইনে (8801701677479 বা 8801732701937) অথবা cservice@b2m-tech.com এ যোগাযোগ করুন।</span></div>
+          <div class="terms-item"><i class="fas fa-check-circle"></i><span>SMS না পেলে আপনার মোবাইলের SMS এপ এর SPAM সেকশনে যাচাই করুন। অন্যথায় WhatsApp-এ (+8801708400182, +8801701677479, +8801942295196, +8801853297958) অথবা cservice@b2m-tech.com এ যোগাযোগ করুন।</span></div>
           <div class="terms-item"><i class="fas fa-check-circle"></i><span>নির্ধারিত তারিখে বাংলাদেশ প্রতিবন্ধী কল্যাণ সমিতি কর্তৃপক্ষ ও বিশিষ্ট ব্যক্তিদের উপস্থিতিতে ঢাকায় ড্র অনুষ্ঠিত হবে।</span></div>
           <div class="terms-item"><i class="fas fa-check-circle"></i><span>লটারীর ড্র এর নির্ধারিত তারিখ ১৯ জুলাই ২০২৬; বিজয়ীদের তালিকা সংবাদপত্রের মাধ্যমে প্রকাশ করা হবে এবং বর্তমান ওয়েবসাইটেও (bpkslottery.com) বিজয়ীদের তালিকা প্রকাশ হবে।</span></div>
           <div class="terms-item"><i class="fas fa-check-circle"></i><span>ফলাফল প্রকাশের ৩০ দিনের মধ্যে বিজয়ীদের পুরষ্কারের জন্য নাম ঠিকানা, সত্যায়িত ছবি ও টিকেট প্রাপ্তির এসএমএস সহ লিখিত দাবী কর্তৃপক্ষের নিকট দাখিল করতে হবে।</span></div>
-          <div class="terms-item"><i class="fas fa-check-circle"></i><span>৬ষ্ঠ হতে ৮ম পুরস্কারের ক্ষেত্রে বিজয়ী নম্বর ক, খ, গ, ঘ, ঙ, চ, ছ, জ, ঝ, ঞ প্রত্যেক সিরিজের ক্ষেত্রে প্রযোজ্য হবে।</span></div>
+          <div class="terms-item"><i class="fas fa-check-circle"></i><span>৭ম ও ৮ম পুরস্কারের ক্ষেত্রে বিজয়ী নম্বর ক, খ, গ, ঘ, ঙ, চ, ছ, জ, ঝ, ঞ প্রত্যেক সিরিজের ক্ষেত্রে প্রযোজ্য হবে।</span></div>
           <div class="terms-item"><i class="fas fa-check-circle"></i><span>এই মোবাইল লটারি ক্রয় প্রক্রিয়ায় অপারেটর শুধুমাত্র পেমেন্ট পার্টনার হিসেবে বিদ্যমান; লটারি সংক্রান্ত সকল কার্যক্রম সম্পূর্ণরূপে বাংলাদেশ প্রতিবন্ধী কল্যাণ সমিতি কর্তৃক পরিচালিত হয়।</span></div>
           <div class="terms-item"><i class="fas fa-check-circle"></i><span>লটারি ড্র সম্পন্ন হওয়ার পর বাংলাদেশ প্রতিবন্ধী কল্যাণ সমিতি (বিপিকেএস)-এর ওয়েবসাইটে ফলাফল প্রকাশ করা হবে এবং পরদিন ইত্তেফাক ও সমকাল পত্রিকায় তা প্রকাশিত হবে।</span></div>
           <div class="terms-item highlight"><i class="fas fa-exclamation-circle"></i><span>এই লটারী সংক্রান্ত যে কোন বিষয়ে বাংলাদেশ প্রতিবন্ধী কল্যাণ সমিতি কর্তৃপক্ষের সিদ্ধান্তই চূড়ান্ত বলে বিবেচিত হবে।</span></div>
@@ -528,12 +555,12 @@
   let qty = 1;
 
   function updateQty(n) {
-    qty = Math.max(1, Math.min(5, n));
+    qty = Math.max(1, Math.min(10, n));
     qtyNumEl.textContent   = toBangla(qty);
     qtyInput.value         = qty;
     qtyTotalRow.textContent = 'মোট: ' + toBangla(qty * 20) + ' টাকা';
     qtyMinus.disabled = qty <= 1;
-    qtyPlus.disabled  = qty >= 5;
+    qtyPlus.disabled  = qty >= 10;
   }
 
   qtyMinus.addEventListener('click', () => updateQty(qty - 1));

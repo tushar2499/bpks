@@ -179,10 +179,14 @@
     শুভকামনা! ড্র এর ফলাফল SMS-এ জানানো হবে।
   </p>
 
+  <a href="{{ route('ticket.download-pdf', ['ref' => $transaction->txn_ref]) }}"
+     class="btn btn-buy-more mb-2" download>
+    <i class="fas fa-file-pdf me-1"></i> সব টিকেট PDF ডাউনলোড ({{ $allTickets->count()}}টি)
+  </a>
   @foreach($allTickets as $t)
   <a href="{{ route('ticket.download', ['ref' => $transaction->txn_ref, 'ticket_no' => $t->ticket_no]) }}"
-     class="btn btn-buy-more mb-2" download>
-    <i class="fas fa-download me-1"></i> ডাউনলোড — {{ $t->ticket_no }}
+     class="btn btn-buy-more mb-2" download style="font-size:.85rem;padding:.6rem;">
+    <i class="fas fa-image me-1"></i> {{ $t->ticket_no }}
   </a>
   @endforeach
   <a href="{{ route('buy.index') }}" class="btn btn-buy-more"
