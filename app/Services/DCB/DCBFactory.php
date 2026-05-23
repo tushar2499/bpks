@@ -35,10 +35,9 @@ class DCBFactory
     public static function make(string $operator): DCBInterface
     {
         return match ($operator) {
-            'Grameenphone' => new GrameenphoneService(),
-            'Robi'         => new RobiService(),
-            'Banglalink'   => new BanglalinkService(),
-            default        => throw new InvalidArgumentException("No DCB service for operator: {$operator}"),
+            'Robi'       => new RobiService(),
+            'Banglalink' => new BanglalinkService(),
+            default      => throw new InvalidArgumentException("No DCB service for operator: {$operator}"),
         };
     }
 }

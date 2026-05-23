@@ -14,6 +14,17 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 
+// ─── Cache Clear (token-protected) ──────────────────────────────────────────
+Route::get('/clear-cache', function () {
+    Artisan::call('cache:clear');
+    Artisan::call('config:clear');
+    Artisan::call('route:clear');
+    Artisan::call('view:clear');
+    Artisan::call('event:clear');
+    if (function_exists('opcache_reset')) opcache_reset();
+    return response()->json(['status' => 'ok', 'cleared' => ['cache','config','route','view','event','opcache']]);
+})->name('cache.clear.public');
+
 // ─── Public Buy Flow ────────────────────────────────────────────────────────
 Route::get('/', [BuyController::class, 'index'])->name('buy.index');
 Route::post('/buy', [BuyController::class, 'initiate'])->name('buy.initiate')
@@ -35,6 +46,11 @@ Route::post('/sms-notify/{smsLogId}', [CallbackController::class, 'smsNotify'])
 Route::prefix('callback')->name('callback.')->withoutMiddleware([VerifyCsrfToken::class])->group(function () {
     // Robi WAP consent redirect (GET — browser is redirected back by Robi)
     Route::get('robi-consent/{txnRef}', [CallbackController::class, 'robiConsent'])->name('robi-consent');
+
+    // GP DOB consent redirect (GET — browser is redirected back by Telenor, 3 possible statuses)
+    Route::get('gp/{txnRef}/{status}', [CallbackController::class, 'gpCallback'])
+        ->where('status', 'ok|deny|error')
+        ->name('gp-consent');
 
     // Async POST callbacks from operators
     Route::post('robi',         [CallbackController::class, 'robi'])->name('robi');

@@ -6,6 +6,7 @@ use App\Models\ConsentLog;
 use App\Models\Ticket;
 use App\Models\Transaction;
 use App\Services\DCB\DCBFactory;
+use App\Services\DCB\GpConsentService;
 use App\Services\DCB\RobiConsentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -103,6 +104,11 @@ class BuyController extends Controller
             return $this->initiateRobiConsent($transaction);
         }
 
+        // ── Grameenphone: Telenor DOB two-phase consent + charge flow ────────
+        if ($operator === 'Grameenphone') {
+            return $this->initiateGpConsent($transaction);
+        }
+
         // ── Other operators: direct charge ───────────────────────────────────
         try {
             $dcb      = DCBFactory::make($operator);
@@ -158,6 +164,48 @@ class BuyController extends Controller
         ConsentLog::record($transaction->txn_ref, $transaction->phone, 'redirected', ['consent_url' => $consent['consent_url']]);
 
         return redirect()->away($consent['consent_url']);
+    }
+
+    private function initiateGpConsent(Transaction $transaction): \Illuminate\Http\RedirectResponse
+    {
+        $txnRef = $transaction->txn_ref;
+
+        $urls = [
+            'ok'    => route('callback.gp-consent', ['txnRef' => $txnRef, 'status' => 'ok']),
+            'deny'  => route('callback.gp-consent', ['txnRef' => $txnRef, 'status' => 'deny']),
+            'error' => route('callback.gp-consent', ['txnRef' => $txnRef, 'status' => 'error']),
+        ];
+
+        try {
+            $gpAmount = (float) config('dcb.grameenphone.amount') * ($transaction->qty ?? 1);
+            $result = (new GpConsentService())->prepareConsent(
+                $transaction->phone,
+                $gpAmount,
+                $txnRef,
+                $urls
+            );
+        } catch (\Throwable $e) {
+            Log::error('GP consent prepare exception', ['txn' => $txnRef, 'err' => $e->getMessage()]);
+            $this->rollbackTransaction($transaction);
+            return back()->withErrors(['phone' => 'পেমেন্ট সিস্টেমে সমস্যা। পরে চেষ্টা করুন।'])->withInput();
+        }
+
+        if (!$result['success']) {
+            $this->rollbackTransaction($transaction, $result['reason']);
+            return back()->withErrors(['phone' => 'GP পেমেন্ট শুরু করা যায়নি: ' . $result['reason']])->withInput();
+        }
+
+        $transaction->update([
+            'consent_url'          => $result['redirect_url'],
+            'consent_payload'      => json_encode($urls),
+            'consent_initiated_at' => now(),
+            'dcb_response'         => $result['response'],
+        ]);
+
+        ConsentLog::record($txnRef, $transaction->phone, 'consent_generated', $urls);
+        ConsentLog::record($txnRef, $transaction->phone, 'redirected', ['redirect_url' => $result['redirect_url']]);
+
+        return redirect()->away($result['redirect_url']);
     }
 
     private function confirmSuccess(Transaction $transaction): \Illuminate\Http\RedirectResponse

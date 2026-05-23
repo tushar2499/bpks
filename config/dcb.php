@@ -3,10 +3,17 @@
 return [
 
     'grameenphone' => [
-        'base_url'   => env('GP_DCB_URL', 'https://api.gp.com.bd/dsdp'),
-        'app_id'     => env('GP_DCB_APP_ID', ''),
-        'password'   => env('GP_DCB_PASSWORD', ''),
-        'service_id' => env('GP_DCB_SERVICE_ID', ''),
+        'base_url'     => env('GP_DOB_URL', 'https://api.dob.telenordigital.com'),
+        'username'     => env('GP_DOB_USERNAME', 'b2mtech'),
+        'password'     => env('GP_DOB_PASSWORD', ''),
+        'operator_id'  => env('GP_DOB_OPERATOR_ID', 'GRA-BD'),
+        'amount'       => (float) env('GP_DOB_AMOUNT', 17.391),
+        'merchant'     => env('GP_DOB_MERCHANT', 'GRA-BD'),
+        'country_code' => (int) env('GP_DOB_COUNTRY_CODE', 880),
+        'product_id'   => env('GP_DOB_PRODUCT_ID', 'BPKSLotteryTicket'),
+        'product_desc' => env('GP_DOB_PRODUCT_DESC', 'BPKS Lottery Ticket'),
+        'category'     => env('GP_DOB_CATEGORY', 'mTicketing'),
+        'sms_sender'   => env('GP_DOB_SMS_SENDER', '8801323174104'),
     ],
 
     'robi' => [

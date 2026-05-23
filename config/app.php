@@ -67,6 +67,8 @@ return [
 
     'timezone' => 'Asia/Dhaka',
 
+    'cache_clear_token' => env('CACHE_CLEAR_TOKEN', ''),
+
     /*
     |--------------------------------------------------------------------------
     | Application Locale Configuration

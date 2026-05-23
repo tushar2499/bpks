@@ -550,7 +550,7 @@
     '018':'রবি',       '016':'এয়ারটেল (রবি)',
     '015':'টেলিটক',
   };
-  const ROBI_AIRTEL_PREFIXES = new Set(['016','018']);
+  const MULTI_TICKET_PREFIXES = new Set(['013','017','016','018']);
 
   let qty = 1;
 
@@ -587,7 +587,7 @@
     } else {
       operatorBox.style.display = 'none';
     }
-    if (op && ROBI_AIRTEL_PREFIXES.has(px)) {
+    if (op && MULTI_TICKET_PREFIXES.has(px)) {
       qtyBox.style.display = '';
     } else {
       qtyBox.style.display = 'none';
