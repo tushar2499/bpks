@@ -258,19 +258,27 @@ class CallbackController extends Controller
             'dcb_response'   => json_encode($request->all()),
         ]);
 
+        $gpAmount = (float) config('dcb.grameenphone.amount') * max(1, (int) ($transaction->qty ?? 1));
+
         $charge = (new GpConsentService())->chargePayment(
             $customerReference,
             $consentId,
             $txnRef,
-            (float) $transaction->amount
+            $gpAmount
         );
 
         if ($charge['success']) {
-            $transaction->update(['dcb_response' => $charge['response']]);
+            $transaction->update([
+                'gp_charge_request' => $charge['request'],
+                'dcb_response'      => $charge['response'],
+            ]);
             return $this->handleConsentSuccess($transaction, $charge['server_ref']);
         }
 
-        $transaction->update(['dcb_response' => $charge['response']]);
+        $transaction->update([
+            'gp_charge_request' => $charge['request'],
+            'dcb_response'      => $charge['response'],
+        ]);
         ConsentLog::record($txnRef, $transaction->phone, 'charge_failed',
             json_decode($charge['response'], true),
             $charge['reason']

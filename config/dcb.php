@@ -3,27 +3,26 @@
 return [
 
     'grameenphone' => [
-        'base_url'     => env('GP_DOB_URL', 'https://api.dob.telenordigital.com'),
-        'username'     => env('GP_DOB_USERNAME', 'b2mtech'),
-        'password'     => env('GP_DOB_PASSWORD', ''),
-        'operator_id'  => env('GP_DOB_OPERATOR_ID', 'GRA-BD'),
-        'amount'       => (float) env('GP_DOB_AMOUNT', 17.391),
-        'merchant'     => env('GP_DOB_MERCHANT', 'GRA-BD'),
-        'country_code' => (int) env('GP_DOB_COUNTRY_CODE', 880),
-        'product_id'   => env('GP_DOB_PRODUCT_ID', 'BPKSLotteryTicket'),
-        'product_desc' => env('GP_DOB_PRODUCT_DESC', 'BPKS Lottery Ticket'),
-        'category'     => env('GP_DOB_CATEGORY', 'mTicketing'),
-        'sms_sender'   => env('GP_DOB_SMS_SENDER', '8801323174104'),
+        'base_url'     => 'https://api.dob.telenordigital.com',
+        'username'     => 'b2mtech',
+        'password'     => 'drikVuPycBDJF0jSU4lAjTVroU2PTUJG',
+        'operator_id'  => 'GRA-BD',
+        'amount'       => 17.391,
+        'merchant'     => 'GRA-BD',
+        'country_code' => 880,
+        'product_id'   => 'BPKSLotteryTicket',
+        'product_desc' => 'BPKS Lottery Ticket',
+        'category'     => 'mTicketing',
+        'sms_sender'   => 'GP DOB',
     ],
 
     'robi' => [
         'base_url'    => env('ROBI_DCB_URL', 'https://api.robi.com.bd/wap'),
-        'sp_id'       => env('ROBI_SP_ID', '20011'),
-        'sp_password' => env('ROBI_SP_PASSWORD', 'Robi1234'),
-        'service_id'  => env('ROBI_SERVICE_ID', '02000192000001220'),
-        'consent_url' => env('ROBI_CONSENT_URL', 'https://dsdpwap.robi.com.bd/store/wapconfirm'),
-        // Base DCB amount in poisha (excluding VAT/SD/SC — must match Robi's configured value)
-        'dcb_amount'  => (int) env('ROBI_DCB_AMOUNT', 1981),
+        'sp_id'       => '200011',
+        'sp_password' => 'Robi1234',
+        'service_id'  => '02000112000001226',
+        'consent_url' => 'https://dsdpwap.robi.com.bd/store/wapconfirm',
+        'dcb_amount'  => 1981,
     ],
 
     'banglalink' => [
@@ -35,12 +34,12 @@ return [
 
     // Robi MIFE SMS API (for sending ticket SMS after successful payment)
     'robi_sms' => [
-        'token_url'      => env('ROBI_SMS_TOKEN_URL', 'https://apigate.robi.com.bd/token'),
-        'sms_url'        => env('ROBI_SMS_URL', 'https://apigate.robi.com.bd/smsmessaging/v1'),
-        'username'       => env('ROBI_SMS_USERNAME', ''),
-        'password'       => env('ROBI_SMS_PASSWORD', ''),
-        'auth_header'    => env('ROBI_SMS_AUTH_HEADER', ''),
-        'sender_address' => env('ROBI_SMS_SENDER', '200011'),
+        'token_url'      => 'https://apigate.robi.com.bd/token',
+        'sms_url'        => 'https://apigate.robi.com.bd/smsmessaging/v1',
+        'username'       => 'MIFE_B2MTechSDP',
+        'password'       => 'B2mtEch0nosDp@^MIfe820',
+        'auth_header'    => 'Basic TjNHVEpnMEQ4TUVzczI3Njlmem1vdGN1bktVYTpfQ3Z4em43cF90ZUhPN0cwNW90SXBPaDZLcThh',
+        'sender_address' => '25063',
     ],
 
 ];

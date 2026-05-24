@@ -10,7 +10,7 @@ class Transaction extends Model
         'txn_ref', 'ticket_id', 'ticket_ids', 'phone', 'operator', 'amount', 'qty',
         'status', 'dcb_txn_id', 'dcb_response', 'failure_reason', 'confirmed_at',
         'nonce', 'consent_url', 'consent_payload', 'consent_initiated_at',
-        'gp_consent_id', 'gp_customer_ref',
+        'gp_consent_id', 'gp_customer_ref', 'gp_charge_request',
     ];
 
     protected $casts = [

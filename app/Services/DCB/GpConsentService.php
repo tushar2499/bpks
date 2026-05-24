@@ -103,7 +103,7 @@ class GpConsentService
                             'currency'    => 'BDT',
                         ],
                         'chargingMetaData' => [
-                            'purchaseCategoryCode' => $this->category,
+                            'purchaseCategoryCode' => $this->productId,
                             'channel'              => 'WEB',
                             'productId'            => $this->productId,
                             'mandateId'            => ['consentId' => $consentId],
@@ -131,6 +131,7 @@ class GpConsentService
                 return [
                     'success'    => true,
                     'server_ref' => $body['amountTransaction']['serverReferenceCode'] ?? null,
+                    'request'    => json_encode($payload),
                     'response'   => json_encode($body),
                 ];
             }
@@ -142,6 +143,7 @@ class GpConsentService
             return [
                 'success'  => false,
                 'reason'   => $errorMsg,
+                'request'  => json_encode($payload),
                 'response' => json_encode($body),
             ];
 
