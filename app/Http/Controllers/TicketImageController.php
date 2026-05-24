@@ -44,8 +44,8 @@ class TicketImageController extends Controller
         $red    = imagecolorallocate($img, 185, 28, 28);
         $shadow = imagecolorallocatealpha($img, 0, 0, 0, 60);
 
-        imagettftext($img, 52, 0, 577, 132, $shadow, $fontPath, $ticketNo);
-        imagettftext($img, 52, 0, 575, 130, $red,    $fontPath, $ticketNo);
+        imagettftext($img, 28, 0, 577, 132, $shadow, $fontPath, $ticketNo);
+        imagettftext($img, 28, 0, 575, 130, $red,    $fontPath, $ticketNo);
 
         $this->stampSecurityBand($img, $imgW, $imgH, $txn->txn_ref, $txn->phone, 1.0);
 
@@ -152,7 +152,7 @@ class TicketImageController extends Controller
         $scale  = $dstW / $srcW;
         $red    = imagecolorallocate($dst, 185, 28, 28);
         $shadow = imagecolorallocatealpha($dst, 0, 0, 0, 60);
-        $fs     = (int) round(52 * $scale);
+        $fs     = (int) round(28 * $scale);
         $tx     = (int) round(575 * $scale);
         $ty     = (int) round(130 * $scale);
 
