@@ -163,6 +163,8 @@ class BuyController extends Controller
         ConsentLog::record($transaction->txn_ref, $transaction->phone, 'consent_generated', $consent['payload']);
         ConsentLog::record($transaction->txn_ref, $transaction->phone, 'redirected', ['consent_url' => $consent['consent_url']]);
 
+        dd($consent);
+
         return redirect()->away($consent['consent_url']);
     }
 
