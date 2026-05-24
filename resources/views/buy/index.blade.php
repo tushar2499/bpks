@@ -239,7 +239,7 @@
     .qty-btn:hover:not(:disabled) { background: var(--blue-mid); color: #fff; }
     .qty-btn:disabled { opacity: .35; cursor: not-allowed; }
     .qty-num { font-size: 1.25rem; font-weight: 800; color: var(--blue); min-width: 1.6rem; text-align: center; }
-    .qty-total-row { font-size: .78rem; color: var(--muted); text-align: right; margin-top: .2rem; }
+    .qty-total-row { font-size: 1rem; font-weight: 800; color: var(--blue); text-align: right; margin-top: .3rem; letter-spacing: .01em; }
 
     /* ── MODAL ── */
     .modal-content { border-radius: 1.2rem; overflow: hidden; border: none; }
@@ -338,13 +338,6 @@
           <div class="date">১৯ জুলাই ২০২৬</div>
         </div>
 
-        <!-- Helpline -->
-        <div class="helpline-card d-none d-lg-block">
-          <a href="tel:09638222222" class="text-decoration-none fw-bold" style="color:#065f46;">
-            <i class="fas fa-headset me-2"></i>হেল্পলাইন: ০৯৬৩৮-২২২২২২
-          </a>
-        </div>
-
         <!-- Find ticket link -->
         <div class="text-center mt-2 d-none d-lg-block">
           <a href="{{ route('my-ticket.show') }}" style="font-size:.8rem;color:var(--blue-mid);">
@@ -411,35 +404,10 @@
       </div>
 
       <!-- Customer Care WhatsApp -->
-      <div class="mb-3">
+      <div class="mb-3" id="whatsappCareBox" style="display:none;">
         <div class="sec-title"><i class="fab fa-whatsapp me-2" style="color:#25d366;"></i>কাস্টমার কেয়ার (WhatsApp)</div>
         <div class="info-card px-3 py-2">
-          <div class="row g-2">
-            <div class="col-6">
-              <a href="https://wa.me/8801708400182" target="_blank" class="d-flex align-items-center gap-2 text-decoration-none" style="color:#065f46;">
-                <i class="fab fa-whatsapp" style="color:#25d366;font-size:1.1rem;"></i>
-                <span style="font-size:.85rem;font-weight:600;">+880 1708-400182</span>
-              </a>
-            </div>
-            <div class="col-6">
-              <a href="https://wa.me/8801701677479" target="_blank" class="d-flex align-items-center gap-2 text-decoration-none" style="color:#065f46;">
-                <i class="fab fa-whatsapp" style="color:#25d366;font-size:1.1rem;"></i>
-                <span style="font-size:.85rem;font-weight:600;">+880 1701-677479</span>
-              </a>
-            </div>
-            <div class="col-6">
-              <a href="https://wa.me/8801942295196" target="_blank" class="d-flex align-items-center gap-2 text-decoration-none" style="color:#065f46;">
-                <i class="fab fa-whatsapp" style="color:#25d366;font-size:1.1rem;"></i>
-                <span style="font-size:.85rem;font-weight:600;">+880 1942-295196</span>
-              </a>
-            </div>
-            <div class="col-6">
-              <a href="https://wa.me/8801853297958" target="_blank" class="d-flex align-items-center gap-2 text-decoration-none" style="color:#065f46;">
-                <i class="fab fa-whatsapp" style="color:#25d366;font-size:1.1rem;"></i>
-                <span style="font-size:.85rem;font-weight:600;">+880 1853-297958</span>
-              </a>
-            </div>
-          </div>
+          <div class="row g-2" id="whatsappNumbers"></div>
         </div>
       </div>
 
@@ -451,7 +419,7 @@
           <div class="terms-item"><i class="fas fa-check-circle"></i><span>ক্রয়কৃত লটারীর টিকেট নম্বর ও কনফার্মেশন কেবলমাত্র SMS এর মাধ্যমে পাঠানো হবে।</span></div>
           <div class="terms-item"><i class="fas fa-check-circle"></i><span>SMS না পেলে আপনার মোবাইলের SMS এপ এর SPAM সেকশনে যাচাই করুন। অন্যথায় WhatsApp-এ (+8801708400182, +8801701677479, +8801942295196, +8801853297958) অথবা cservice@b2m-tech.com এ যোগাযোগ করুন।</span></div>
           <div class="terms-item"><i class="fas fa-check-circle"></i><span>নির্ধারিত তারিখে বাংলাদেশ প্রতিবন্ধী কল্যাণ সমিতি কর্তৃপক্ষ ও বিশিষ্ট ব্যক্তিদের উপস্থিতিতে ঢাকায় ড্র অনুষ্ঠিত হবে।</span></div>
-          <div class="terms-item"><i class="fas fa-check-circle"></i><span>লটারীর ড্র এর নির্ধারিত তারিখ ১৯ জুলাই ২০২৬; বিজয়ীদের তালিকা সংবাদপত্রের মাধ্যমে প্রকাশ করা হবে এবং বর্তমান ওয়েবসাইটেও (bpkslottery.com) বিজয়ীদের তালিকা প্রকাশ হবে।</span></div>
+          <div class="terms-item"><i class="fas fa-check-circle"></i><span>লটারীর ড্র এর নির্ধারিত তারিখ ১৯ জুলাই ২০২৬; বিজয়ীদের তালিকা সংবাদপত্রের মাধ্যমে প্রকাশ করা হবে এবং বর্তমান ওয়েবসাইটেও (bpks.b2mwap.com) বিজয়ীদের তালিকা প্রকাশ হবে।</span></div>
           <div class="terms-item"><i class="fas fa-check-circle"></i><span>ফলাফল প্রকাশের ৩০ দিনের মধ্যে বিজয়ীদের পুরষ্কারের জন্য নাম ঠিকানা, সত্যায়িত ছবি ও টিকেট প্রাপ্তির এসএমএস সহ লিখিত দাবী কর্তৃপক্ষের নিকট দাখিল করতে হবে।</span></div>
           <div class="terms-item"><i class="fas fa-check-circle"></i><span>৭ম ও ৮ম পুরস্কারের ক্ষেত্রে বিজয়ী নম্বর ক, খ, গ, ঘ, ঙ, চ, ছ, জ, ঝ, ঞ প্রত্যেক সিরিজের ক্ষেত্রে প্রযোজ্য হবে।</span></div>
           <div class="terms-item"><i class="fas fa-check-circle"></i><span>এই মোবাইল লটারি ক্রয় প্রক্রিয়ায় অপারেটর শুধুমাত্র পেমেন্ট পার্টনার হিসেবে বিদ্যমান; লটারি সংক্রান্ত সকল কার্যক্রম সম্পূর্ণরূপে বাংলাদেশ প্রতিবন্ধী কল্যাণ সমিতি কর্তৃক পরিচালিত হয়।</span></div>
@@ -467,8 +435,8 @@
           <p><i class="fas fa-wheelchair me-2" style="color:var(--blue-mid);"></i>
           আপনার প্রতিটি টিকেটের অর্থ সরাসরি ব্যবহৃত হবে <strong>বাংলাদেশ প্রতিবন্ধী কল্যাণ সমিতি</strong>-এর প্রতিবন্ধী মানুষের উন্নয়নে।</p>
           <p class="mb-0" style="font-size:.8rem;color:var(--muted);">
-            <i class="fas fa-envelope me-1"></i> nibircorporation88@gmail.com &nbsp;|&nbsp;
-            <i class="fas fa-globe me-1"></i> bpkslottery.com
+            <i class="fas fa-envelope me-1"></i> cservice@b2m-tech.com &nbsp;|&nbsp;
+            <i class="fas fa-globe me-1"></i> bpks.b2mwap.com
           </p>
         </div>
       </div>
@@ -482,7 +450,6 @@
   <div class="container">
     <div class="mb-1">বাংলাদেশ প্রতিবন্ধী কল্যাণ সমিতি (বিপিকেএস) &nbsp;|&nbsp; জাতীয় লটারি-২০২৬</div>
     <div>Powered by <a href="#">B2M Technologies Ltd.</a> &nbsp;|&nbsp;
-      <a href="tel:09638222222">০৯৬৩৮-২২২২২২</a> &nbsp;|&nbsp;
       <a href="{{ route('my-ticket.show') }}">টিকেট খুঁজুন</a>
     </div>
   </div>
@@ -530,8 +497,10 @@
 <script>
 (function () {
   const phoneInput   = document.getElementById('phone');
-  const operatorBox  = document.getElementById('operatorBox');
-  const operatorText = document.getElementById('operatorText');
+  const operatorBox     = document.getElementById('operatorBox');
+  const operatorText    = document.getElementById('operatorText');
+  const whatsappCareBox = document.getElementById('whatsappCareBox');
+  const whatsappNumbers = document.getElementById('whatsappNumbers');
   const qtyBox       = document.getElementById('qtyBox');
   const qtyMinus     = document.getElementById('qtyMinus');
   const qtyPlus      = document.getElementById('qtyPlus');
@@ -550,6 +519,24 @@
     '018':'রবি',       '016':'এয়ারটেল (রবি)',
     '015':'টেলিটক',
   };
+
+  const WA_NUMBERS = {
+    '013': [['8801708400182','+880 1708-400182'],['8801701677479','+880 1701-677479']],
+    '017': [['8801708400182','+880 1708-400182'],['8801701677479','+880 1701-677479']],
+    '014': [['8801942295196','+880 1942-295196']],
+    '019': [['8801942295196','+880 1942-295196']],
+    '016': [['8801853297958','+880 1853-297958']],
+    '018': [['8801853297958','+880 1853-297958']],
+  };
+
+  function updateWhatsApp(px) {
+    const nums = WA_NUMBERS[px];
+    if (!nums) { whatsappCareBox.style.display = 'none'; return; }
+    whatsappNumbers.innerHTML = nums.map(([id, label]) =>
+      `<div class="col-6"><a href="https://wa.me/${id}" target="_blank" class="d-flex align-items-center gap-2 text-decoration-none" style="color:#065f46;"><i class="fab fa-whatsapp" style="color:#25d366;font-size:1.1rem;"></i><span style="font-size:.85rem;font-weight:600;">${label}</span></a></div>`
+    ).join('');
+    whatsappCareBox.style.display = '';
+  }
   const MULTI_TICKET_PREFIXES = new Set(['013','017','016','018']);
 
   let qty = 1;
@@ -593,6 +580,7 @@
       qtyBox.style.display = 'none';
       updateQty(1);
     }
+    updateWhatsApp(px);
   });
 
   if (phoneInput.value) phoneInput.dispatchEvent(new Event('input'));

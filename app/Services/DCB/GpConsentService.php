@@ -15,8 +15,6 @@ class GpConsentService
     private int    $countryCode;
     private string $productId;
     private string $productDesc;
-    private string $category;
-
     public function __construct()
     {
         $this->baseUrl     = (string) config('dcb.grameenphone.base_url');
@@ -27,7 +25,6 @@ class GpConsentService
         $this->countryCode = (int)    config('dcb.grameenphone.country_code');
         $this->productId   = (string) config('dcb.grameenphone.product_id');
         $this->productDesc = (string) config('dcb.grameenphone.product_desc');
-        $this->category    = (string) config('dcb.grameenphone.category');
     }
 
     /**
@@ -104,7 +101,7 @@ class GpConsentService
                         ],
                         'chargingMetaData' => [
                             'purchaseCategoryCode' => $this->productId,
-                            'channel'              => 'WEB',
+                            'channel'              => 'Others',
                             'productId'            => $this->productId,
                             'mandateId'            => ['consentId' => $consentId],
                         ],
@@ -136,19 +133,76 @@ class GpConsentService
                 ];
             }
 
-            $errorMsg = $body['requestError']['policyException']['text']
-                     ?? ($body['requestError']['serviceException']['text']
-                     ?? ($body['message'] ?? 'Charge failed'));
+            $errorMsg  = $body['requestError']['policyException']['text']
+                      ?? ($body['requestError']['serviceException']['text']
+                      ?? ($body['message'] ?? 'Charge failed'));
+            $messageId = $body['requestError']['policyException']['messageId']
+                      ?? ($body['requestError']['serviceException']['messageId']
+                      ?? null);
 
             return [
-                'success'  => false,
-                'reason'   => $errorMsg,
-                'request'  => json_encode($payload),
-                'response' => json_encode($body),
+                'success'    => false,
+                'reason'     => $errorMsg,
+                'message_id' => $messageId,
+                'request'    => json_encode($payload),
+                'response'   => json_encode($body),
             ];
 
         } catch (\Throwable $e) {
             Log::error('GP charge payment error', ['txn' => $txnRef, 'error' => $e->getMessage()]);
+            return [
+                'success'  => false,
+                'reason'   => 'Connection error: ' . $e->getMessage(),
+                'response' => $e->getMessage(),
+            ];
+        }
+    }
+
+    /**
+     * Initiate recharge-and-buy when POL1000 (Insufficient credit) is returned.
+     * Redirects customer to top up, then retries the original charge.
+     */
+    public function prepareRecharge(string $acr, string $originalRef, string $rechargeRef, array $urls): array
+    {
+        $url = $this->baseUrl . '/partner/payment/v1/' . $acr . '/transactions/recharge/prepare';
+
+        $payload = [
+            'originalReferenceCode' => $originalRef,
+            'referenceCode'         => $rechargeRef,
+            'urls'                  => $urls,
+        ];
+
+        try {
+            Log::info('GP recharge prepare request', ['original' => $originalRef, 'recharge' => $rechargeRef, 'acr' => $acr]);
+
+            $response = Http::timeout(15)
+                ->withBasicAuth($this->username, $this->password)
+                ->post($url, $payload);
+
+            $body = $response->json();
+
+            Log::info('GP recharge prepare response', ['recharge' => $rechargeRef, 'body' => $body]);
+
+            if (!empty($body['continueUrl'])) {
+                return [
+                    'success'      => true,
+                    'continue_url' => $body['continueUrl'],
+                    'response'     => json_encode($body),
+                ];
+            }
+
+            $errorMsg = $body['requestError']['policyException']['text']
+                     ?? ($body['requestError']['serviceException']['text']
+                     ?? ($body['message'] ?? 'Recharge prepare failed'));
+
+            return [
+                'success'  => false,
+                'reason'   => $errorMsg,
+                'response' => json_encode($body),
+            ];
+
+        } catch (\Throwable $e) {
+            Log::error('GP recharge prepare error', ['recharge' => $rechargeRef, 'error' => $e->getMessage()]);
             return [
                 'success'  => false,
                 'reason'   => 'Connection error: ' . $e->getMessage(),

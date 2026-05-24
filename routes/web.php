@@ -52,6 +52,11 @@ Route::prefix('callback')->name('callback.')->withoutMiddleware([VerifyCsrfToken
         ->where('status', 'ok|deny|error')
         ->name('gp-consent');
 
+    // GP recharge-and-buy callback (after POL1000 recharge flow)
+    Route::get('gp-recharge/{txnRef}/{status}', [CallbackController::class, 'gpRechargeCallback'])
+        ->where('status', 'ok|deny|error')
+        ->name('gp-recharge');
+
     // Async POST callbacks from operators
     Route::post('robi',         [CallbackController::class, 'robi'])->name('robi');
     Route::post('grameenphone', [CallbackController::class, 'grameenphone'])->name('grameenphone');

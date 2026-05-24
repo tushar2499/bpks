@@ -279,7 +279,92 @@ class CallbackController extends Controller
             'gp_charge_request' => $charge['request'],
             'dcb_response'      => $charge['response'],
         ]);
+
+        // POL1000 = Insufficient credit → attempt recharge-and-buy
+        if (($charge['message_id'] ?? null) === 'POL1000') {
+            $rechargeRef  = 'RCHG' . strtoupper(\Illuminate\Support\Str::random(13));
+            $rechargeUrls = [
+                'ok'    => route('callback.gp-recharge', ['txnRef' => $txnRef, 'status' => 'ok']),
+                'deny'  => route('callback.gp-recharge', ['txnRef' => $txnRef, 'status' => 'deny']),
+                'error' => route('callback.gp-recharge', ['txnRef' => $txnRef, 'status' => 'error']),
+            ];
+
+            $recharge = (new GpConsentService())->prepareRecharge(
+                $customerReference, $txnRef, $rechargeRef, $rechargeUrls
+            );
+
+            ConsentLog::record($txnRef, $transaction->phone, 'recharge_initiated', [
+                'recharge_ref' => $rechargeRef,
+                'response'     => $recharge['response'] ?? null,
+            ]);
+
+            if ($recharge['success']) {
+                $transaction->update(['gp_recharge_ref' => $rechargeRef]);
+                return redirect()->away($recharge['continue_url']);
+            }
+
+            ConsentLog::record($txnRef, $transaction->phone, 'recharge_failed', null, $recharge['reason']);
+        }
+
         ConsentLog::record($txnRef, $transaction->phone, 'charge_failed',
+            json_decode($charge['response'], true),
+            $charge['reason']
+        );
+        return $this->handleConsentFailure($transaction, $charge['reason']);
+    }
+
+    // ── GP recharge-and-buy callback ──────────────────────────────────────────
+
+    public function gpRechargeCallback(Request $request, string $txnRef, string $status)
+    {
+        Log::info('GP recharge callback', ['txn_ref' => $txnRef, 'status' => $status, 'params' => $request->all()]);
+
+        $transaction = Transaction::where('txn_ref', $txnRef)
+            ->where('operator', 'Grameenphone')
+            ->first();
+
+        if (!$transaction) {
+            Log::warning('GP recharge callback: txn not found', ['txn_ref' => $txnRef]);
+            return redirect()->route('buy.index')->withErrors(['phone' => 'লেনদেন পাওয়া যায়নি।']);
+        }
+
+        if ($transaction->status === 'success') {
+            return redirect()->route('buy.success', ['ref' => $transaction->txn_ref]);
+        }
+
+        if ($transaction->status === 'failed') {
+            return redirect()->route('buy.index')
+                ->withErrors(['phone' => 'পেমেন্ট ব্যর্থ হয়েছে: ' . ($transaction->failure_reason ?? 'অজানা ত্রুটি')]);
+        }
+
+        ConsentLog::record($txnRef, $transaction->phone, 'recharge_callback_received', $request->all(), 'status=' . $status);
+
+        if ($status !== 'ok') {
+            return $this->handleConsentFailure($transaction, 'GP recharge ' . $status);
+        }
+
+        $gpAmount = (float) config('dcb.grameenphone.amount') * max(1, (int) ($transaction->qty ?? 1));
+
+        $charge = (new GpConsentService())->chargePayment(
+            $transaction->gp_customer_ref,
+            $transaction->gp_consent_id,
+            $txnRef,
+            $gpAmount
+        );
+
+        if ($charge['success']) {
+            $transaction->update([
+                'gp_charge_request' => $charge['request'],
+                'dcb_response'      => $charge['response'],
+            ]);
+            return $this->handleConsentSuccess($transaction, $charge['server_ref']);
+        }
+
+        $transaction->update([
+            'gp_charge_request' => $charge['request'],
+            'dcb_response'      => $charge['response'],
+        ]);
+        ConsentLog::record($txnRef, $transaction->phone, 'recharge_charge_failed',
             json_decode($charge['response'], true),
             $charge['reason']
         );

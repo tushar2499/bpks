@@ -38,23 +38,20 @@ class TicketImageController extends Controller
         imageAlphaBlending($img, true);
         imageSaveAlpha($img, true);
 
-        $w = imagesx($img); // 1052
-        $h = imagesy($img); // 1024
+        $imgW = imagesx($img);
+        $imgH = imagesy($img);
 
-        // Colors
         $red    = imagecolorallocate($img, 185, 28, 28);
         $shadow = imagecolorallocatealpha($img, 0, 0, 0, 60);
 
-        // Ticket number — right of BPKS logo (logo ~x:430-560, y:30-160)
-        $textX    = 575;
-        $textY    = 130;
-        $fontSize = 52;
+        imagettftext($img, 52, 0, 577, 132, $shadow, $fontPath, $ticketNo);
+        imagettftext($img, 52, 0, 575, 130, $red,    $fontPath, $ticketNo);
 
-        imagettftext($img, $fontSize, 0, $textX + 2, $textY + 2, $shadow, $fontPath, $ticketNo);
-        imagettftext($img, $fontSize, 0, $textX,     $textY,     $red,    $fontPath, $ticketNo);
+        $this->stampSecurityBand($img, $imgW, $imgH, $txn->txn_ref, $txn->phone, 1.0);
 
-        // Output
         $filename = 'BPKS-Ticket-' . $ticketNo . '.png';
+
+        setcookie('dl_ready', '1', time() + 60, '/', '', false, false);
 
         header('Content-Type: image/png');
         header('Content-Disposition: attachment; filename="' . $filename . '"');
@@ -77,7 +74,7 @@ class TicketImageController extends Controller
 
         $images = $tickets->map(fn($t) => [
             'ticket_no' => $t->ticket_no,
-            'b64'       => $this->renderTicketJpeg($t->ticket_no),
+            'b64'       => $this->renderTicketJpeg($t->ticket_no, $txn->txn_ref, $txn->phone),
         ]);
 
         $pdf = Pdf::loadView('tickets.pdf', [
@@ -88,7 +85,7 @@ class TicketImageController extends Controller
           ->setPaper([0, 0, 595, 580], 'portrait');
 
         return $pdf->download('BPKS-Tickets-' . $txn->txn_ref . '.pdf')
-            ->cookie('dl_ready', '1', 1, '/');
+            ->cookie('dl_ready', '1', 1, '/', null, false, false);
     }
 
     public function downloadAllPdf(Request $request)
@@ -103,13 +100,24 @@ class TicketImageController extends Controller
             ->get();
         abort_if($transactions->isEmpty(), 404);
 
-        $allIds  = $transactions->flatMap(fn($t) => $t->ticket_ids ?? [$t->ticket_id])->filter()->unique()->values();
+        $ticketMeta = [];
+        foreach ($transactions as $t) {
+            foreach (($t->ticket_ids ?? [$t->ticket_id]) as $id) {
+                $ticketMeta[$id] = ['txn_ref' => $t->txn_ref, 'phone' => $t->phone];
+            }
+        }
+
+        $allIds  = collect(array_keys($ticketMeta))->filter()->unique()->values();
         $tickets = Ticket::whereIn('id', $allIds)->get();
         abort_if($tickets->isEmpty(), 404);
 
         $images = $tickets->map(fn($t) => [
             'ticket_no' => $t->ticket_no,
-            'b64'       => $this->renderTicketJpeg($t->ticket_no),
+            'b64'       => $this->renderTicketJpeg(
+                $t->ticket_no,
+                $ticketMeta[$t->id]['txn_ref'] ?? '',
+                $ticketMeta[$t->id]['phone'] ?? $phone,
+            ),
         ]);
 
         $pdf = Pdf::loadView('tickets.pdf', [
@@ -120,10 +128,10 @@ class TicketImageController extends Controller
           ->setPaper([0, 0, 595, 580], 'portrait');
 
         return $pdf->download('BPKS-Tickets-' . $phone . '.pdf')
-            ->cookie('dl_ready', '1', 1, '/');
+            ->cookie('dl_ready', '1', 1, '/', null, false, false);
     }
 
-    private function renderTicketJpeg(string $ticketNo): string
+    private function renderTicketJpeg(string $ticketNo, string $txnRef, string $phone): string
     {
         $basePath = public_path('bpks-lottery.png');
         $fontPath = public_path('fonts/arialbd.ttf');
@@ -134,8 +142,7 @@ class TicketImageController extends Controller
         $srcW = imagesx($src);
         $srcH = imagesy($src);
 
-        // Scale to 400px wide — enough for PDF quality, ~4× less data than original
-        $dstW = 400;
+        $dstW = 800;
         $dstH = (int) round($srcH * $dstW / $srcW);
 
         $dst = imagecreatetruecolor($dstW, $dstH);
@@ -149,14 +156,63 @@ class TicketImageController extends Controller
         $tx     = (int) round(575 * $scale);
         $ty     = (int) round(130 * $scale);
 
-        imagettftext($dst, $fs, 0, $tx + 1, $ty + 1, $shadow, $fontPath, $ticketNo);
+        imagettftext($dst, $fs, 0, $tx + 2, $ty + 2, $shadow, $fontPath, $ticketNo);
         imagettftext($dst, $fs, 0, $tx,     $ty,     $red,    $fontPath, $ticketNo);
 
+        $this->stampSecurityBand($dst, $dstW, $dstH, $txnRef, $phone, $scale);
+
         ob_start();
-        imagejpeg($dst, null, 70);
+        imagejpeg($dst, null, 90);
         $data = ob_get_clean();
         imagedestroy($dst);
 
         return base64_encode($data);
+    }
+
+    private function stampSecurityBand($img, int $w, int $h, string $txnRef, string $phone, float $scale): void
+    {
+        $fontPath = public_path('fonts/arialbd.ttf');
+
+        // Vertical center between top (ticket face) and bottom (rules) sections
+        $midY = (int) round(0.485 * $h);
+
+        // Format: TXN ref in groups of 4 separated by ·
+        $txnLabel = implode(' · ', str_split($txnRef, 4));
+
+        // Phone: normalize to 13-digit MSISDN then group
+        $clean = preg_replace('/\D/', '', $phone);
+        if (strlen($clean) === 11 && str_starts_with($clean, '01')) {
+            $clean = '88' . $clean;
+        }
+        $phoneLabel = implode('-', str_split($clean, 4));
+
+        $fs1 = (int) round(22 * $scale);
+        $fs2 = (int) round(17 * $scale);
+
+        $white  = imagecolorallocate($img, 255, 255, 255);
+        $gold   = imagecolorallocate($img, 212, 175, 55);
+        $dark   = imagecolorallocatealpha($img, 0, 0, 0, 20);
+
+        // TXN line — centered, thick outline for readability without background
+        $bb1 = imagettfbbox($fs1, -3, $fontPath, $txnLabel);
+        $tw1 = abs($bb1[2] - $bb1[0]);
+        $x1  = max(4, (int) round(($w - $tw1) / 2));
+        $y1  = $midY - (int) round(4 * $scale);
+
+        foreach ([[-2,-2],[-2,0],[-2,2],[0,-2],[0,2],[2,-2],[2,0],[2,2]] as [$ox, $oy]) {
+            imagettftext($img, $fs1, -3, $x1 + $ox, $y1 + $oy, $dark, $fontPath, $txnLabel);
+        }
+        imagettftext($img, $fs1, -3, $x1, $y1, $white, $fontPath, $txnLabel);
+
+        // Phone line — centered, gold color
+        $bb2 = imagettfbbox($fs2, -3, $fontPath, $phoneLabel);
+        $tw2 = abs($bb2[2] - $bb2[0]);
+        $x2  = max(4, (int) round(($w - $tw2) / 2));
+        $y2  = $midY + (int) round(26 * $scale);
+
+        foreach ([[-2,-2],[-2,0],[-2,2],[0,-2],[0,2],[2,-2],[2,0],[2,2]] as [$ox, $oy]) {
+            imagettftext($img, $fs2, -3, $x2 + $ox, $y2 + $oy, $dark, $fontPath, $phoneLabel);
+        }
+        imagettftext($img, $fs2, -3, $x2, $y2, $gold, $fontPath, $phoneLabel);
     }
 }

@@ -133,6 +133,36 @@
       .success-card { padding: 1.5rem 1rem; border-radius: 1.25rem; }
       .check-ring   { width: 60px; height: 60px; font-size: 1.6rem; }
     }
+
+    /* Download overlay */
+    .dl-overlay {
+      display: none; position: fixed; inset: 0; z-index: 9999;
+      background: rgba(15,23,42,.75);
+      backdrop-filter: blur(4px);
+      align-items: center; justify-content: center;
+      flex-direction: column; gap: 1rem;
+    }
+    .dl-overlay.show { display: flex; }
+    .dl-spinner {
+      width: 60px; height: 60px;
+      border: 5px solid rgba(255,255,255,.2);
+      border-top-color: #fbbf24;
+      border-radius: 50%;
+      animation: dlspin .8s linear infinite;
+    }
+    @keyframes dlspin { to { transform: rotate(360deg); } }
+    .dl-text { color: #fff; font-size: 1.1rem; font-weight: 700; }
+    .dl-dots::after {
+      content: '';
+      animation: dldots 1.5s steps(4, end) infinite;
+    }
+    @keyframes dldots {
+      0%  { content: ''; }   25% { content: '.'; }
+      50% { content: '..'; } 75% { content: '...'; }
+    }
+    a[download].dl-loading {
+      opacity: .55; pointer-events: none; cursor: not-allowed;
+    }
   </style>
 </head>
 <body>
@@ -175,17 +205,15 @@
     <span class="value" style="font-size:.75rem;word-break:break-all;">{{ $transaction->txn_ref }}</span>
   </div>
 
-  <p class="text-muted mb-3" style="font-size:.82rem;">
-    শুভকামনা! ড্র এর ফলাফল SMS-এ জানানো হবে।
-  </p>
-
   <a href="{{ route('ticket.download-pdf', ['ref' => $transaction->txn_ref]) }}"
-     class="btn btn-buy-more mb-2" download>
+     class="btn btn-buy-more mb-2" download
+     data-filename="BPKS-Tickets-{{ $transaction->txn_ref }}.pdf">
     <i class="fas fa-file-pdf me-1"></i> সব টিকেট PDF ডাউনলোড ({{ $allTickets->count()}}টি)
   </a>
   @foreach($allTickets as $t)
   <a href="{{ route('ticket.download', ['ref' => $transaction->txn_ref, 'ticket_no' => $t->ticket_no]) }}"
-     class="btn btn-buy-more mb-2" download style="font-size:.85rem;padding:.6rem;">
+     class="btn btn-buy-more mb-2" download style="font-size:.85rem;padding:.6rem;"
+     data-filename="BPKS-Ticket-{{ $t->ticket_no }}.png">
     <i class="fas fa-image me-1"></i> {{ $t->ticket_no }}
   </a>
   @endforeach
@@ -195,9 +223,52 @@
   </a>
 
   <div class="footer-note">
-    হেল্পলাইন: ০৯৬৩৮-২২২২২২ &nbsp;·&nbsp; Powered by B2M Technologies Ltd.
+    Powered by B2M Technologies Ltd.
   </div>
 
 </div>
+
+<!-- Download overlay -->
+<div class="dl-overlay" id="dlOverlay">
+  <div class="dl-spinner"></div>
+  <div class="dl-text">ডাউনলোড হচ্ছে<span class="dl-dots"></span></div>
+</div>
+
+<script>
+(function () {
+  var overlay = document.getElementById('dlOverlay');
+  var dlLinks = document.querySelectorAll('a[download]');
+
+  function reset() {
+    overlay.classList.remove('show');
+    dlLinks.forEach(function (l) { l.classList.remove('dl-loading'); });
+  }
+
+  dlLinks.forEach(function (link) {
+    link.addEventListener('click', function (e) {
+      e.preventDefault();
+      var url      = this.href;
+      var filename = this.dataset.filename || this.getAttribute('download') || 'ticket';
+
+      overlay.classList.add('show');
+      dlLinks.forEach(function (l) { l.classList.add('dl-loading'); });
+
+      fetch(url)
+        .then(function (r) { return r.blob(); })
+        .then(function (blob) {
+          var a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+          reset();
+        })
+        .catch(function () { reset(); });
+    });
+  });
+})();
+</script>
 </body>
 </html>

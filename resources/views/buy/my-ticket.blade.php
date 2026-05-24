@@ -138,6 +138,9 @@
       75%  { content: '...'; }
       100% { content: ''; }
     }
+    a[download].dl-loading {
+      opacity: .55; pointer-events: none; cursor: not-allowed;
+    }
   </style>
 </head>
 <body>
@@ -179,6 +182,7 @@
 
   <a href="{{ route('ticket.download-all-pdf', ['phone' => $phone]) }}"
      class="btn-dl d-block text-center mb-3 py-2" download
+     data-filename="BPKS-Tickets-{{ $phone }}.pdf"
      style="background:linear-gradient(135deg,#1e40af,#2563eb);border-radius:.75rem;font-size:.9rem;">
     <i class="fas fa-file-pdf me-1"></i>সব টিকেট PDF ডাউনলোড ({{ $totalTickets }}টি)
   </a>
@@ -212,7 +216,7 @@
     </a>
   </div>
 
-  <div class="footer-note">হেল্পলাইন: ০৯৬৩৮-২২২২২২ &nbsp;·&nbsp; Powered by B2M Technologies Ltd.</div>
+  <div class="footer-note">Powered by B2M Technologies Ltd.</div>
 </div>
 
 <!-- Download overlay -->
@@ -223,25 +227,38 @@
 
 <script>
 (function () {
-  const overlay = document.getElementById('dlOverlay');
+  var overlay = document.getElementById('dlOverlay');
+  var dlLinks = document.querySelectorAll('a[download]');
 
-  document.querySelectorAll('a[download]').forEach(function (link) {
-    link.addEventListener('click', function () {
+  function reset() {
+    overlay.classList.remove('show');
+    dlLinks.forEach(function (l) { l.classList.remove('dl-loading'); });
+  }
+
+  dlLinks.forEach(function (link) {
+    link.addEventListener('click', function (e) {
+      e.preventDefault();
+      var url      = this.href;
+      var filename = this.dataset.filename || this.getAttribute('download') || 'ticket';
+
       overlay.classList.add('show');
-      // Hide after 8s max — covers slow PDF generation
-      setTimeout(function () { overlay.classList.remove('show'); }, 8000);
+      dlLinks.forEach(function (l) { l.classList.add('dl-loading'); });
+
+      fetch(url)
+        .then(function (r) { return r.blob(); })
+        .then(function (blob) {
+          var a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+          reset();
+        })
+        .catch(function () { reset(); });
     });
   });
-
-  // Cookie-based detection: server sets 'dl_ready' cookie when PDF is sent
-  // Fallback: just rely on timeout above
-  var poll = setInterval(function () {
-    if (document.cookie.split(';').some(function (c) { return c.trim().startsWith('dl_ready='); })) {
-      overlay.classList.remove('show');
-      document.cookie = 'dl_ready=; Max-Age=0; path=/';
-      clearInterval(poll);
-    }
-  }, 500);
 })();
 </script>
 </body>
