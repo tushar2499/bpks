@@ -186,8 +186,8 @@ class TicketImageController extends Controller
         }
         $phoneLabel = implode('-', str_split($clean, 4));
 
-        $fs1 = (int) round(22 * $scale);
-        $fs2 = (int) round(17 * $scale);
+        $fs1 = (int) round(14 * $scale);
+        $fs2 = (int) round(11 * $scale);
 
         $white  = imagecolorallocate($img, 255, 255, 255);
         $gold   = imagecolorallocate($img, 212, 175, 55);
@@ -208,7 +208,7 @@ class TicketImageController extends Controller
         $bb2 = imagettfbbox($fs2, -3, $fontPath, $phoneLabel);
         $tw2 = abs($bb2[2] - $bb2[0]);
         $x2  = max(4, (int) round(($w - $tw2) / 2));
-        $y2  = $midY + (int) round(26 * $scale);
+        $y2  = $midY + (int) round(18 * $scale);
 
         foreach ([[-2,-2],[-2,0],[-2,2],[0,-2],[0,2],[2,-2],[2,0],[2,2]] as [$ox, $oy]) {
             imagettftext($img, $fs2, -3, $x2 + $ox, $y2 + $oy, $dark, $fontPath, $phoneLabel);
