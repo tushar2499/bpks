@@ -108,7 +108,13 @@
           <td class="ps-3 text-nowrap small">{{ $txn->confirmed_at?->format('d M Y H:i') ?? $txn->created_at->format('d M Y H:i') }}</td>
           <td class="fw-semibold small">{{ $txn->phone }}</td>
           <td class="small">{{ $txn->operator }}</td>
-          <td class="font-monospace small fw-bold">{{ $txn->ticket?->ticket_no ?? '—' }}</td>
+          <td class="font-monospace small fw-bold">
+            @if(!empty($txn->resolved_ticket_nos))
+              {{ implode(', ', $txn->resolved_ticket_nos) }}
+            @else
+              —
+            @endif
+          </td>
           <td class="font-monospace" style="font-size:.68rem;">{{ $txn->txn_ref }}</td>
           <td><span class="sbadge {{ $badgeClass }}">{{ $badgeText }}</span></td>
           <td class="small text-muted" style="max-width:180px;word-break:break-word;">

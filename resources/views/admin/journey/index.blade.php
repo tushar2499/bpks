@@ -87,6 +87,16 @@
                value="{{ request('phone') }}" placeholder="01XXXXXXXXX">
       </div>
       <div class="col-md-2">
+        <label class="form-label small mb-1">অপারেটর</label>
+        <select name="operator" class="form-select form-select-sm">
+          <option value="">সব</option>
+          <option value="Grameenphone" @selected(request('operator')=='Grameenphone')>Grameenphone</option>
+          <option value="Robi"         @selected(request('operator')=='Robi')>Robi</option>
+          <option value="Airtel"       @selected(request('operator')=='Airtel')>Airtel</option>
+          <option value="Banglalink"   @selected(request('operator')=='Banglalink')>Banglalink</option>
+        </select>
+      </div>
+      <div class="col-md-2">
         <label class="form-label small mb-1">স্ট্যাটাস</label>
         <select name="status" class="form-select form-select-sm">
           <option value="">সব</option>
@@ -124,6 +134,7 @@
         <tr>
           <th class="ps-3">তারিখ / সময়</th>
           <th>ফোন</th>
+          <th>অপারেটর</th>
           <th>TXN REF</th>
           <th>পরিমাণ</th>
           <th>স্ট্যাটাস</th>
@@ -169,6 +180,7 @@
         <tr class="journey-row" data-journey='{!! $journeyData !!}'>
           <td class="ps-3 text-nowrap small">{{ $txn->created_at->format('d M Y H:i:s') }}</td>
           <td class="small fw-semibold">{{ $txn->phone }}</td>
+          <td class="small">{{ $txn->operator ?? '—' }}</td>
           <td class="small font-monospace" style="font-size:.7rem;">{{ $txn->txn_ref }}</td>
           <td class="small">৳{{ number_format($txn->amount, 2) }}</td>
           <td><span class="sbadge {{ $statusClass }}">{{ ucfirst($txn->status) }}</span></td>
@@ -182,7 +194,7 @@
           <td class="pe-3 small font-monospace" style="font-size:.7rem;">{{ $txn->dcb_txn_id ?? '—' }}</td>
         </tr>
         @empty
-        <tr><td colspan="7" class="text-center text-muted py-5">
+        <tr><td colspan="8" class="text-center text-muted py-5">
           <i class="fas fa-inbox fa-2x mb-2 d-block opacity-25"></i>কোনো ডেটা নেই
         </td></tr>
         @endforelse

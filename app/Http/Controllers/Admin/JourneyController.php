@@ -7,18 +7,28 @@ use App\Models\ConsentLog;
 use App\Models\SmsLog;
 use App\Models\Ticket;
 use App\Models\Transaction;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class JourneyController extends Controller
 {
     public function index(Request $request)
     {
+        /** @var User $user */
+        $user     = Auth::user();
+        $opFilter = $user->isOperator() ? $user->operator : null;
+
         $query = Transaction::with(['ticket', 'consentLogs', 'smsLog'])
-            ->where('operator', 'Robi')
+            ->when($opFilter, fn($q) => $q->where('operator', $opFilter))
             ->orderByDesc('created_at');
 
         if ($request->filled('phone')) {
             $query->where('phone', 'like', '%' . $request->phone . '%');
+        }
+
+        if (!$opFilter && $request->filled('operator')) {
+            $query->where('operator', $request->operator);
         }
 
         if ($request->filled('status')) {

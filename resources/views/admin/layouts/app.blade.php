@@ -65,12 +65,15 @@
       <a href="{{ route('admin.dashboard') }}" class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
         <i class="fas fa-tachometer-alt fa"></i> ড্যাশবোর্ড
       </a>
+      @if(Auth::user()->canManageTickets())
       <a href="{{ route('admin.tickets.index') }}" class="nav-link {{ request()->routeIs('admin.tickets.index') ? 'active' : '' }}">
         <i class="fas fa-ticket-alt fa"></i> টিকেট তালিকা
       </a>
       <a href="{{ route('admin.tickets.generate') }}" class="nav-link {{ request()->routeIs('admin.tickets.generate') ? 'active' : '' }}">
         <i class="fas fa-plus-circle fa"></i> টিকেট তৈরি
       </a>
+      @endif
+      @if(Auth::user()->canViewReports())
       <a href="{{ route('admin.reports.index') }}" class="nav-link {{ request()->routeIs('admin.reports.index') ? 'active' : '' }}">
         <i class="fas fa-chart-bar fa"></i> রিপোর্ট
       </a>
@@ -80,9 +83,15 @@
       <a href="{{ route('admin.journey.index') }}" class="nav-link {{ request()->routeIs('admin.journey.*') ? 'active' : '' }}">
         <i class="fas fa-route fa"></i> কাস্টমার জার্নি
       </a>
+      @endif
       <a href="{{ route('admin.customer-care.index') }}" class="nav-link {{ request()->routeIs('admin.customer-care.*') ? 'active' : '' }}">
         <i class="fas fa-headset fa"></i> কাস্টমার কেয়ার
       </a>
+      @if(Auth::user()->isAdmin())
+      <a href="{{ route('admin.users.index') }}" class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
+        <i class="fas fa-users fa"></i> ব্যবহারকারী
+      </a>
+      @endif
     </div>
     <div class="sidebar-footer">
       <form action="{{ route('admin.logout') }}" method="POST">
@@ -98,7 +107,14 @@
   <div class="main-wrapper flex-fill">
     <div class="topbar">
       <div class="fw-bold text-dark">@yield('page-title', 'Admin Panel')</div>
-      <div class="text-muted small"><i class="fas fa-user-circle me-1"></i>{{ Auth::user()->name }}</div>
+      <div class="text-muted small">
+        <i class="fas fa-user-circle me-1"></i>{{ Auth::user()->name }}
+        @php $roleLabel = ['admin'=>'Admin','operator'=>'Operator','customer_care'=>'Customer Care'][Auth::user()->role] ?? Auth::user()->role; @endphp
+        <span class="badge ms-1" style="font-size:.6rem;background:#e2e8f0;color:#475569;">{{ $roleLabel }}</span>
+        @if(Auth::user()->isOperator() && Auth::user()->operator)
+          <span class="badge ms-1" style="font-size:.6rem;background:#dbeafe;color:#1d4ed8;">{{ Auth::user()->operator }}</span>
+        @endif
+      </div>
     </div>
     <div class="page-content">
       @if(session('success'))

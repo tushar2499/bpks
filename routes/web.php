@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\JourneyController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\TicketController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\BuyController;
 use App\Http\Controllers\CallbackController;
 use App\Http\Controllers\MyTicketController;
@@ -90,6 +91,13 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('journey', [JourneyController::class, 'index'])->name('journey.index');
 
         Route::get('customer-care', [CustomerCareController::class, 'index'])->name('customer-care.index');
+
+        Route::get('users', [UserController::class, 'index'])->name('users.index');
+        Route::get('users/create', [UserController::class, 'create'])->name('users.create');
+        Route::post('users', [UserController::class, 'store'])->name('users.store');
+        Route::get('users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
+        Route::put('users/{user}', [UserController::class, 'update'])->name('users.update');
+        Route::delete('users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
 
         Route::get('cache/clear', function () {
             Artisan::call('cache:clear');

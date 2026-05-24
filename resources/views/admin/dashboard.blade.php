@@ -78,6 +78,22 @@
 </div>
 @endif
 
+<!-- Sales Chart (last 60 days) -->
+@if(count($chartDates) > 0)
+<div class="card mb-4" style="border-radius:1rem;border:none;">
+  <div class="card-header bg-white border-0 pt-3 pb-0 d-flex justify-content-between align-items-center">
+    <h6 class="fw-bold mb-0"><i class="fas fa-chart-bar me-2 text-primary"></i>বিক্রয় বিশ্লেষণ (শেষ ৬০ দিন)</h6>
+    <div class="btn-group btn-group-sm" role="group">
+      <button id="btnQty" type="button" class="btn btn-primary" onclick="switchMode('qty')">সংখ্যা</button>
+      <button id="btnRev" type="button" class="btn btn-outline-primary" onclick="switchMode('revenue')">আয় (৳)</button>
+    </div>
+  </div>
+  <div class="card-body">
+    <canvas id="salesChart" style="max-height:320px;"></canvas>
+  </div>
+</div>
+@endif
+
 <!-- Recent Sales -->
 <div class="card" style="border-radius:1rem;border:none;">
   <div class="card-header bg-white border-0 pt-3 pb-0">
@@ -118,3 +134,80 @@
   </div>
 </div>
 @endsection
+
+@push('scripts')
+@if(count($chartDates) > 0)
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+const DATES     = @json($chartDates);
+const OPERATORS = @json($chartOperators);
+const DATASETS  = @json($chartDatasets);
+
+const OP_COLORS = {
+  'Grameenphone': '#16a34a',
+  'Robi':         '#dc2626',
+  'Airtel':       '#be123c',
+  'Banglalink':   '#ea580c',
+};
+const DEFAULT_COLOR = '#6366f1';
+
+function buildDatasets(mode) {
+  return OPERATORS.map(op => ({
+    label:           op,
+    data:            DATASETS[op][mode],
+    backgroundColor: (OP_COLORS[op] ?? DEFAULT_COLOR) + 'cc',
+    borderColor:     OP_COLORS[op] ?? DEFAULT_COLOR,
+    borderWidth:     1,
+    borderRadius:    3,
+  }));
+}
+
+const ctx   = document.getElementById('salesChart').getContext('2d');
+let mode    = 'qty';
+const chart = new Chart(ctx, {
+  type: 'bar',
+  data: { labels: DATES, datasets: buildDatasets('qty') },
+  options: {
+    responsive: true,
+    maintainAspectRatio: true,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: { position: 'top', labels: { boxWidth: 12, font: { size: 11 } } },
+      tooltip: {
+        callbacks: {
+          label: ctx => {
+            const v = ctx.parsed.y;
+            return ` ${ctx.dataset.label}: ${mode === 'revenue' ? '৳' + v.toLocaleString() : v}`;
+          }
+        }
+      }
+    },
+    scales: {
+      x: {
+        stacked: true,
+        ticks: { font: { size: 10 }, maxRotation: 45 },
+        grid: { display: false },
+      },
+      y: {
+        stacked: true,
+        beginAtZero: true,
+        ticks: {
+          font: { size: 10 },
+          callback: v => mode === 'revenue' ? '৳' + v.toLocaleString() : v,
+        },
+      },
+    },
+  },
+});
+
+function switchMode(m) {
+  mode = m;
+  chart.data.datasets = buildDatasets(m);
+  chart.options.scales.y.ticks.callback = v => m === 'revenue' ? '৳' + v.toLocaleString() : v;
+  chart.update();
+  document.getElementById('btnQty').className = m === 'qty'     ? 'btn btn-sm btn-primary'         : 'btn btn-sm btn-outline-primary';
+  document.getElementById('btnRev').className = m === 'revenue' ? 'btn btn-sm btn-primary'         : 'btn btn-sm btn-outline-primary';
+}
+</script>
+@endif
+@endpush
