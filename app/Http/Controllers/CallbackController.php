@@ -64,7 +64,7 @@ class CallbackController extends Controller
             return $this->handleConsentSuccess($transaction, $dcbTxnId);
         }
 
-        return $this->handleConsentFailure($transaction, $resultCode);
+        return $this->handleConsentFailure($transaction, $this->resultMessage($resultCode));
     }
 
     private function handleConsentSuccess(Transaction $transaction, ?string $dcbTxnId): \Illuminate\Http\RedirectResponse
@@ -93,9 +93,8 @@ class CallbackController extends Controller
         return redirect()->route('buy.success', ['ref' => $transaction->txn_ref]);
     }
 
-    private function handleConsentFailure(Transaction $transaction, string $resultCode): \Illuminate\Http\RedirectResponse
+    private function handleConsentFailure(Transaction $transaction, string $reason): \Illuminate\Http\RedirectResponse
     {
-        $reason = $this->resultMessage($resultCode);
 
         $ids = $transaction->ticket_ids ?? [$transaction->ticket_id];
 
@@ -343,12 +342,13 @@ class CallbackController extends Controller
             return $this->handleConsentFailure($transaction, 'GP recharge ' . $status);
         }
 
-        $gpAmount = (float) config('dcb.grameenphone.amount') * max(1, (int) ($transaction->qty ?? 1));
+        $gpAmount    = (float) config('dcb.grameenphone.amount') * max(1, (int) ($transaction->qty ?? 1));
+        $chargeRef   = $transaction->gp_recharge_ref ?: $txnRef; // use recharge ref so GP doesn't reject the original failed ref
 
         $charge = (new GpConsentService())->chargePayment(
             $transaction->gp_customer_ref,
             $transaction->gp_consent_id,
-            $txnRef,
+            $chargeRef,
             $gpAmount
         );
 
@@ -356,6 +356,7 @@ class CallbackController extends Controller
             $transaction->update([
                 'gp_charge_request' => $charge['request'],
                 'dcb_response'      => $charge['response'],
+                'dcb_txn_id'        => $charge['server_ref'],
             ]);
             return $this->handleConsentSuccess($transaction, $charge['server_ref']);
         }
