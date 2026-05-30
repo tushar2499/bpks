@@ -4,8 +4,8 @@ return [
 
     'grameenphone' => [
         'base_url'     => 'https://api.dob.telenordigital.com',
-        'username'     => 'b2mtech',
-        'password'     => 'drikVuPycBDJF0jSU4lAjTVroU2PTUJG',
+        'username'     => 'b2mtech-EE0CFD4K',
+        'password'     => '1JKpKKUVulyvAbedyiSfBc',
         'operator_id'  => 'GRA-BD',
         'amount'       => 17.391,
         'merchant'     => 'GRA-BD',
