@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Ticket extends Model
 {
-    protected $fillable = ['ticket_no', 'phone', 'operator', 'status', 'sell_price', 'sold_at'];
+    protected $fillable = ['ticket_no', 'series', 'sale_tier', 'phone', 'operator', 'status', 'sell_price', 'sold_at'];
 
     protected $casts = [
         'sold_at' => 'datetime',

@@ -57,8 +57,23 @@ class BuyController extends Controller
         // Atomic: lock qty unsold tickets for this operator
         $result = DB::transaction(function () use ($phone, $operator, $qty) {
 
+            // Find active tier per series (lowest tier still having unsold tickets)
+            $activeTiers = DB::table('tickets')
+                ->where('operator', $operator)
+                ->where('status', 0)
+                ->whereNotNull('series')
+                ->select('series', DB::raw('MIN(sale_tier) as active_tier'))
+                ->groupBy('series')
+                ->pluck('active_tier', 'series');
+
             $tickets = Ticket::where('status', 0)
                 ->where('operator', $operator)
+                ->where(function ($q) use ($activeTiers) {
+                    foreach ($activeTiers as $series => $tier) {
+                        $q->orWhere(fn($q2) => $q2->where('series', $series)->where('sale_tier', $tier));
+                    }
+                    $q->orWhereNull('series'); // fallback for any unbackfilled rows
+                })
                 ->inRandomOrder()
                 ->lockForUpdate()
                 ->limit($qty)

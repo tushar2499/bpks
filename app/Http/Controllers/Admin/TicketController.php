@@ -62,10 +62,19 @@ class TicketController extends Controller
         $padLen    = max(strlen($startRaw), strlen((string) ($start + $count - 1)));
         $now       = now()->toDateTimeString();
 
+        // How many tickets already exist for this (series, operator) — determines tier offset
+        $existingCount = DB::table('tickets')
+            ->where('operator', $operator)
+            ->where('series', $prefix)
+            ->count();
+
         $tickets = [];
         for ($i = 0; $i < $count; $i++) {
+            $position  = $existingCount + $i;
             $tickets[] = [
                 'ticket_no'  => $prefix . str_pad($start + $i, $padLen, '0', STR_PAD_LEFT),
+                'series'     => $prefix,
+                'sale_tier'  => (int) floor($position / 5000) + 1,
                 'operator'   => $operator,
                 'status'     => 0,
                 'sell_price' => 20,
