@@ -110,4 +110,82 @@
     </div>
   </div>
 </div>
+
+@if(Auth::user()->isAdmin() && $tierProgress->isNotEmpty())
+<div class="card mt-4" style="border-radius:1rem;border:none;">
+  <div class="card-header bg-white border-0 pt-3">
+    <h6 class="fw-bold mb-0"><i class="fas fa-layer-group me-2 text-warning"></i>সিরিজ টায়ার অগ্রগতি</h6>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-sm table-hover mb-0 align-middle">
+        <thead class="table-light">
+          <tr>
+            <th class="ps-3">অপারেটর</th>
+            <th>সিরিজ</th>
+            <th class="text-center">টায়ার</th>
+            <th class="text-center">মোট</th>
+            <th class="text-center">বিক্রিত</th>
+            <th class="text-center">বাকি</th>
+            <th style="min-width:160px;">অগ্রগতি</th>
+            <th class="pe-3 text-center">অবস্থা</th>
+          </tr>
+        </thead>
+        <tbody>
+          @foreach($tierProgress as $key => $tiers)
+            @php
+              [$op, $series] = explode('||', $key);
+              // Active tier = lowest tier with unsold > 0
+              $activeTier = $tiers->first(fn($r) => $r->unsold > 0)?->sale_tier;
+            @endphp
+            @foreach($tiers as $idx => $row)
+            @php
+              $pct      = $row->total > 0 ? round(($row->sold / $row->total) * 100) : 0;
+              $isActive = $row->sale_tier === $activeTier;
+              $isDone   = $row->unsold == 0 && $row->total > 0;
+              $isLocked = !$isDone && !$isActive;
+              $rowBg    = $isActive ? 'background:#fffbeb;' : ($isDone ? 'background:#f0fdf4;' : '');
+            @endphp
+            <tr style="{{ $rowBg }}">
+              @if($idx === 0)
+              <td class="ps-3 fw-semibold small" rowspan="{{ $tiers->count() }}">{{ $op }}</td>
+              <td class="fw-bold font-monospace small" rowspan="{{ $tiers->count() }}" style="color:#1e3a8a;">{{ $series }}</td>
+              @endif
+              <td class="text-center">
+                <span class="badge" style="font-size:.7rem;background:{{ $isActive ? '#f59e0b' : ($isDone ? '#10b981' : '#94a3b8') }};color:#fff;">
+                  T{{ $row->sale_tier }}
+                </span>
+              </td>
+              <td class="text-center small">{{ number_format($row->total) }}</td>
+              <td class="text-center small fw-semibold text-success">{{ number_format($row->sold) }}</td>
+              <td class="text-center small {{ $row->unsold > 0 ? 'text-warning fw-semibold' : 'text-muted' }}">
+                {{ number_format($row->unsold) }}
+              </td>
+              <td>
+                <div class="d-flex align-items-center gap-1">
+                  <div class="progress flex-fill" style="height:8px;border-radius:4px;">
+                    <div class="progress-bar {{ $isDone ? 'bg-success' : ($isActive ? 'bg-warning' : 'bg-secondary') }}"
+                         style="width:{{ $pct }}%;"></div>
+                  </div>
+                  <span class="text-muted" style="font-size:.68rem;min-width:28px;">{{ $pct }}%</span>
+                </div>
+              </td>
+              <td class="pe-3 text-center">
+                @if($isDone)
+                  <span style="font-size:.7rem;color:#065f46;font-weight:700;"><i class="fas fa-check-circle me-1"></i>সম্পন্ন</span>
+                @elseif($isActive)
+                  <span style="font-size:.7rem;color:#b45309;font-weight:700;"><i class="fas fa-play-circle me-1"></i>চলমান</span>
+                @else
+                  <span style="font-size:.7rem;color:#94a3b8;"><i class="fas fa-lock me-1"></i>লক</span>
+                @endif
+              </td>
+            </tr>
+            @endforeach
+          @endforeach
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+@endif
 @endsection

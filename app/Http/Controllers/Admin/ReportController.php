@@ -40,7 +40,22 @@ class ReportController extends Controller
             ->limit(30)
             ->get();
 
-        return view('admin.reports.index', compact('stats', 'byOperator', 'daily'));
+        $tierProgress = collect();
+        if ($user->isAdmin()) {
+            $tierProgress = DB::table('tickets')
+                ->whereNotNull('series')
+                ->selectRaw('operator, series, sale_tier,
+                    COUNT(*) as total,
+                    SUM(status = 1) as sold,
+                    SUM(status = 0) as unsold,
+                    SUM(status = 2) as reserved')
+                ->groupBy('operator', 'series', 'sale_tier')
+                ->orderBy('operator')->orderBy('series')->orderBy('sale_tier')
+                ->get()
+                ->groupBy(fn($r) => $r->operator . '||' . $r->series);
+        }
+
+        return view('admin.reports.index', compact('stats', 'byOperator', 'daily', 'tierProgress'));
     }
 
     public function exportCsv()
