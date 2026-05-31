@@ -6,7 +6,7 @@
   <title>BPKS জাতীয় লটারি-২০২৬ | বিশ টাকায় জিতুন ৩০ লক্ষ টাকা</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
       --blue:      #1e40af;
@@ -23,7 +23,7 @@
     }
     * { box-sizing: border-box; }
     body {
-      font-family: 'Hind Siliguri', sans-serif;
+      font-family: 'Noto Sans Bengali', sans-serif;
       background: var(--bg);
       color: var(--text);
       margin: 0;
@@ -423,7 +423,7 @@
           <div class="terms-item"><i class="fas fa-check-circle"></i><span>ফলাফল প্রকাশের ৩০ দিনের মধ্যে বিজয়ীদের পুরষ্কারের জন্য নাম ঠিকানা, সত্যায়িত ছবি ও টিকেট প্রাপ্তির এসএমএস সহ লিখিত দাবী কর্তৃপক্ষের নিকট দাখিল করতে হবে।</span></div>
           <div class="terms-item"><i class="fas fa-check-circle"></i><span>৭ম ও ৮ম পুরস্কারের ক্ষেত্রে বিজয়ী নম্বর ক, খ, গ, ঘ, ঙ, চ, ছ, জ, ঝ, ঞ প্রত্যেক সিরিজের ক্ষেত্রে প্রযোজ্য হবে।</span></div>
           <div class="terms-item"><i class="fas fa-check-circle"></i><span>এই মোবাইল লটারি ক্রয় প্রক্রিয়ায় অপারেটর শুধুমাত্র পেমেন্ট পার্টনার হিসেবে বিদ্যমান; লটারি সংক্রান্ত সকল কার্যক্রম সম্পূর্ণরূপে বাংলাদেশ প্রতিবন্ধী কল্যাণ সমিতি কর্তৃক পরিচালিত হয়।</span></div>
-          <div class="terms-item"><i class="fas fa-check-circle"></i><span>লটারি ড্র সম্পন্ন হওয়ার পর বাংলাদেশ প্রতিবন্ধী কল্যাণ সমিতি (বিপিকেএস)-এর ওয়েবসাইটে ফলাফল প্রকাশ করা হবে এবং পরদিন ইত্তেফাক ও সমকাল পত্রিকায় তা প্রকাশিত হবে।</span></div>
+          <div class="terms-item"><i class="fas fa-check-circle"></i><span>লটারি ড্র সম্পন্ন হওয়ার পর বাংলাদেশ প্রতিবন্ধী কল্যাণ সমিতি (বিপিকেএস)-এর ওয়েবসাইটে ফলাফল প্রকাশ করা হবে এবং পরের দিন পত্রিকায় প্রকাশ করা হবে।</span></div>
           <div class="terms-item highlight"><i class="fas fa-exclamation-circle"></i><span>এই লটারী সংক্রান্ত যে কোন বিষয়ে বাংলাদেশ প্রতিবন্ধী কল্যাণ সমিতি কর্তৃপক্ষের সিদ্ধান্তই চূড়ান্ত বলে বিবেচিত হবে।</span></div>
         </div>
       </div>

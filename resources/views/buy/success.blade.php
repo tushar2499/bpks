@@ -6,10 +6,10 @@
   <title>টিকেট সফল | BPKS লটারি</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;600;700;800&display=swap" rel="stylesheet">
   <style>
     body {
-      font-family: 'Hind Siliguri', sans-serif;
+      font-family: 'Noto Sans Bengali', sans-serif;
       background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 60%, #3b82f6 100%);
       min-height: 100vh;
       display: flex;

@@ -6,10 +6,10 @@
   <title>টিকেট খুঁজুন | BPKS লটারি</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;600;700;800&display=swap" rel="stylesheet">
   <style>
     body {
-      font-family: 'Hind Siliguri', sans-serif;
+      font-family: 'Noto Sans Bengali', sans-serif;
       background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 60%, #3b82f6 100%);
       min-height: 100vh;
       display: flex;
@@ -47,7 +47,7 @@
       border-radius: .75rem;
       padding: .75rem 1rem;
       font-size: 1.1rem;
-      font-family: 'Hind Siliguri', sans-serif;
+      font-family: 'Noto Sans Bengali', sans-serif;
       width: 100%;
       transition: border-color .2s;
     }
@@ -62,7 +62,7 @@
       color: #fff; border: none; border-radius: 2rem;
       padding: .75rem 2rem; font-weight: 700;
       font-size: 1rem; width: 100%;
-      font-family: 'Hind Siliguri', sans-serif;
+      font-family: 'Noto Sans Bengali', sans-serif;
       box-shadow: 0 4px 14px rgba(30,58,138,.35);
       transition: transform .15s, box-shadow .15s;
     }
@@ -89,7 +89,7 @@
       color: #fff; border: none; border-radius: 1.5rem;
       padding: .4rem .9rem; font-size: .8rem; font-weight: 700;
       white-space: nowrap; text-decoration: none;
-      font-family: 'Hind Siliguri', sans-serif;
+      font-family: 'Noto Sans Bengali', sans-serif;
     }
     .btn-dl:hover { color: #fff; }
 
@@ -98,7 +98,7 @@
       color: #fff; border: none; border-radius: 2rem;
       padding: .65rem 2rem; font-weight: 700;
       font-size: .95rem; width: 100%;
-      font-family: 'Hind Siliguri', sans-serif;
+      font-family: 'Noto Sans Bengali', sans-serif;
       text-decoration: none; display: block; text-align: center;
     }
     .btn-back:hover { color: #fff; }
