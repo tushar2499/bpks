@@ -74,7 +74,12 @@ class BuyController extends Controller
                     }
                     $q->orWhereNull('series'); // fallback for any unbackfilled rows
                 })
-                ->inRandomOrder()
+                // Deterministic PK order instead of ORDER BY RAND(): uses the primary-key
+                // index (no full-scan + filesort on every purchase), and gives all
+                // concurrent buyers a consistent lock-acquisition order so InnoDB cannot
+                // form a lock cycle -> eliminates same-node deadlocks. Tickets are
+                // allocated lowest-id-first; the draw remains independent.
+                ->orderBy('id')
                 ->lockForUpdate()
                 ->limit($qty)
                 ->get();
