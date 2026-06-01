@@ -213,6 +213,77 @@ class ReportController extends Controller
         );
     }
 
+    public function dailyReport(Request $request)
+    {
+        /** @var User $user */
+        $user     = Auth::user();
+        $opFilter = $user->isOperator() ? $user->operator : null;
+
+        $dateFrom = $request->input('date_from');
+        $dateTo   = $request->input('date_to');
+        $operator = $opFilter ?? $request->input('operator');
+
+        $rows = DB::table('transactions')
+            ->where('status', 'success')
+            ->when($dateFrom, fn($q) => $q->whereDate('confirmed_at', '>=', $dateFrom))
+            ->when($dateTo,   fn($q) => $q->whereDate('confirmed_at', '<=', $dateTo))
+            ->when($operator, fn($q) => $q->where('operator', $operator))
+            ->selectRaw('DATE(confirmed_at) as date, operator,
+                COUNT(*) as txn_count,
+                SUM(qty) as ticket_count,
+                SUM(amount) as total_amount')
+            ->groupBy('date', 'operator')
+            ->orderByDesc('date')
+            ->orderBy('operator')
+            ->get();
+
+        $totals = [
+            'txn_count'    => $rows->sum('txn_count'),
+            'ticket_count' => $rows->sum('ticket_count'),
+            'total_amount' => $rows->sum('total_amount'),
+        ];
+
+        $operators = $opFilter ? collect([$opFilter]) : collect(['Grameenphone', 'Robi', 'Airtel', 'Banglalink']);
+
+        return view('admin.reports.daily', compact('rows', 'totals', 'operators', 'opFilter'));
+    }
+
+    public function dailyDetail(Request $request)
+    {
+        /** @var User $user */
+        $user     = Auth::user();
+        $opFilter = $user->isOperator() ? $user->operator : null;
+
+        $date     = $request->input('date');
+        $operator = $opFilter ?? $request->input('operator');
+
+        $transactions = Transaction::with(['smsLog'])
+            ->where('status', 'success')
+            ->whereDate('confirmed_at', $date)
+            ->when($operator, fn($q) => $q->where('operator', $operator))
+            ->orderBy('confirmed_at')
+            ->get();
+
+        // Batch-load ticket numbers
+        $allIds      = $transactions->flatMap(fn($t) => $t->ticket_ids ?? array_filter([$t->ticket_id]))->unique()->filter();
+        $ticketsById = Ticket::whereIn('id', $allIds)->pluck('ticket_no', 'id');
+        foreach ($transactions as $txn) {
+            $ids = $txn->ticket_ids ?? array_filter([$txn->ticket_id]);
+            $txn->resolved_ticket_nos = collect($ids)->map(fn($id) => $ticketsById[$id] ?? null)->filter()->values()->all();
+        }
+
+        return response()->json($transactions->map(fn($t) => [
+            'txn_ref'    => $t->txn_ref,
+            'phone'      => $t->phone,
+            'operator'   => $t->operator,
+            'qty'        => $t->qty,
+            'amount'     => number_format($t->amount, 2),
+            'ticket_nos' => $t->resolved_ticket_nos,
+            'confirmed'  => $t->confirmed_at?->format('H:i:s'),
+            'sms'        => $t->smsLog?->status_message ?? '—',
+        ]));
+    }
+
     private function getStats(?string $opFilter = null): object
     {
         return DB::table('tickets')
