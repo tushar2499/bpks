@@ -133,6 +133,24 @@
     @endif
   </div>
 </div>
+@if(Auth::user()->isAdmin())
+<div class="card mt-4" style="border-radius:1rem;border:none;">
+  <div class="card-header bg-white border-0 pt-3 pb-0">
+    <h6 class="fw-bold mb-0"><i class="fas fa-chart-line me-2 text-primary"></i>ট্রাফিক বিশ্লেষণ (Google Analytics)</h6>
+  </div>
+  <div class="card-body p-2">
+    <div style="position:relative;width:100%;overflow:hidden;border-radius:.5rem;">
+      <iframe
+        width="100%" height="450"
+        src="https://datastudio.google.com/embed/reporting/33c58867-3126-4b08-8859-23454953139d/page/rJwzF"
+        frameborder="0" style="border:0;display:block;" allowfullscreen
+        sandbox="allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox">
+      </iframe>
+    </div>
+  </div>
+</div>
+@endif
+
 @endsection
 
 @push('scripts')
