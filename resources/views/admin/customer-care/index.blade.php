@@ -134,6 +134,7 @@
                 <th>স্ট্যাটাস</th>
                 <th>টিকেট নম্বর</th>
                 <th>SMS</th>
+                <th>SMS পাঠান</th>
                 <th class="text-end px-4">ডাউনলোড</th>
               </tr>
             </thead>
@@ -202,6 +203,20 @@
                     <span class="badge bg-danger-subtle text-danger border border-danger-subtle">
                       <i class="fas fa-times me-1"></i>ব্যর্থ
                     </span>
+                  @else
+                    <span class="text-muted small">—</span>
+                  @endif
+                </td>
+                <td>
+                  @if($txn->status === 'success')
+                    <form method="POST" action="{{ route('admin.reports.sms.retry', $txn) }}">
+                      @csrf
+                      <button type="submit" class="btn btn-sm btn-outline-success py-0 px-2"
+                              onclick="return confirm('{{ $txn->phone }} নম্বরে SMS পাঠাবেন?')"
+                              title="SMS পাঠান">
+                        <i class="fas fa-paper-plane me-1"></i>SMS
+                      </button>
+                    </form>
                   @else
                     <span class="text-muted small">—</span>
                   @endif
