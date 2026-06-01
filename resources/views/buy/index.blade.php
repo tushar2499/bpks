@@ -408,6 +408,7 @@
         <div class="sec-title"><i class="fab fa-whatsapp me-2" style="color:#25d366;"></i>কাস্টমার কেয়ার (WhatsApp)</div>
         <div class="info-card px-3 py-2">
           <div class="row g-2" id="whatsappNumbers"></div>
+          রবিবার থেকে বৃহস্পতিবার (সকাল ৯:৩০ টা থেকে বিকাল ৫:৩০ টা)
         </div>
       </div>
 
@@ -415,9 +416,9 @@
       <div class="mb-3">
         <div class="sec-title"><i class="fas fa-file-contract me-2" style="color:var(--blue-mid);"></i>নিয়মাবলী</div>
         <div class="info-card px-3 py-1">
-          <div class="terms-item"><i class="fas fa-check-circle"></i><span>অনুমোদিত ব্যাংক, প্রতিষ্ঠান ও এই পোর্টাল ব্যতীত অন্য কোনো মাধ্যম হতে টিকেট ক্রয় করলে ঐ টিকেটের জন্য বাংলাদেশ প্রতিবন্ধী কল্যাণ সমিতি ও সংশ্লিষ্ট কর্তৃপক্ষ দায়ী থাকবে না।</span></div>
+          <div class="terms-item"><i class="fas fa-check-circle"></i><span>অনুমোদিত ব্যাংক, প্রতিষ্ঠান ও পোর্টাল ব্যতীত অন্য কোনো মাধ্যম হতে টিকেট ক্রয় করলে ঐ টিকেটের জন্য বাংলাদেশ প্রতিবন্ধী কল্যাণ সমিতি ও সংশ্লিষ্ট কর্তৃপক্ষ দায়ী থাকবে না।</span></div>
           <div class="terms-item"><i class="fas fa-check-circle"></i><span>ক্রয়কৃত লটারীর টিকেট নম্বর ও কনফার্মেশন কেবলমাত্র SMS এর মাধ্যমে পাঠানো হবে।</span></div>
-          <div class="terms-item"><i class="fas fa-check-circle"></i><span>SMS না পেলে আপনার মোবাইলের SMS এপ এর SPAM সেকশনে যাচাই করুন। অন্যথায় WhatsApp-এ (+8801708400182, +8801701677479, +8801942295196, +8801853297958) অথবা cservice@b2m-tech.com এ যোগাযোগ করুন।</span></div>
+          <div class="terms-item"><i class="fas fa-check-circle"></i><span>SMS না পেলে আপনার মোবাইলের SMS এপ এর SPAM সেকশনে যাচাই করুন। অন্যথায় WhatsApp-এ (+8801708400182, +8801701677479, +8801942295196, +8801853297958) অথবা cservice@b2m-tech.com এ যোগাযোগ করুন। রবিবার থেকে বৃহস্পতিবার (সকাল ৯:৩০ টা থেকে বিকাল ৫:৩০ টা)</span></div>
           <div class="terms-item"><i class="fas fa-check-circle"></i><span>নির্ধারিত তারিখে বাংলাদেশ প্রতিবন্ধী কল্যাণ সমিতি কর্তৃপক্ষ ও বিশিষ্ট ব্যক্তিদের উপস্থিতিতে ঢাকায় ড্র অনুষ্ঠিত হবে।</span></div>
           <div class="terms-item"><i class="fas fa-check-circle"></i><span>লটারীর ড্র এর নির্ধারিত তারিখ ১৯ জুলাই ২০২৬; বিজয়ীদের তালিকা সংবাদপত্রের মাধ্যমে প্রকাশ করা হবে এবং বর্তমান ওয়েবসাইটেও (bpks.b2mwap.com) বিজয়ীদের তালিকা প্রকাশ হবে।</span></div>
           <div class="terms-item"><i class="fas fa-check-circle"></i><span>ফলাফল প্রকাশের ৩০ দিনের মধ্যে বিজয়ীদের পুরষ্কারের জন্য নাম ঠিকানা, সত্যায়িত ছবি ও টিকেট প্রাপ্তির এসএমএস সহ লিখিত দাবী কর্তৃপক্ষের নিকট দাখিল করতে হবে।</span></div>
