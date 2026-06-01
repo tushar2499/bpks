@@ -47,7 +47,21 @@ return [
         'mysql' => [
             'driver' => 'mysql',
             'url' => env('DB_URL'),
-            'host' => env('DB_HOST', '127.0.0.1'),
+            // Galera is multi-primary but cannot coordinate InnoDB row locks across
+            // nodes: concurrent "SELECT ... FOR UPDATE" on the same rows from different
+            // nodes are rejected at commit as deadlocks (wsrep_local_bf_aborts). Funnel
+            // ALL writes -- including lockForUpdate() inside DB::transaction(), which
+            // Laravel routes to the write connection -- to a single node so InnoDB
+            // serializes the locks normally. Reads stay on the local replica, so read
+            // load stays distributed. sticky=true keeps post-write reads on the write
+            // connection within the same request to avoid stale reads.
+            'read' => [
+                'host' => [env('DB_READ_HOST', env('DB_HOST', '127.0.0.1'))],
+            ],
+            'write' => [
+                'host' => [env('DB_WRITE_HOST', '10.104.0.12')],
+            ],
+            'sticky' => true,
             'port' => env('DB_PORT', '3306'),
             'database' => env('DB_DATABASE', 'laravel'),
             'username' => env('DB_USERNAME', 'root'),

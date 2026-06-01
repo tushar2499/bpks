@@ -106,7 +106,7 @@ class BuyController extends Controller
             Ticket::whereIn('id', $ticketIds)->update(['status' => 2]);
 
             return ['transaction' => $transaction, 'tickets' => $tickets];
-        });
+        }, 5); // retry up to 5x on deadlock (SQLSTATE 40001) instead of 500ing the buyer
 
         if (isset($result['error'])) {
             return back()->withErrors(['phone' => $result['error']])->withInput();
