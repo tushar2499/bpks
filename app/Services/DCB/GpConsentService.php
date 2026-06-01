@@ -2,6 +2,7 @@
 
 namespace App\Services\DCB;
 
+use App\Models\SmsLog;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -215,7 +216,7 @@ class GpConsentService
      * Send SMS to subscriber via Telenor DOB SMS API.
      * $acr = customerReference (gp_customer_ref on transaction)
      */
-    public function sendSms(string $acr, string $phone, string $message): bool
+    public function sendSms(string $acr, string $phone, string $message, string $txnRef = ''): bool
     {
         try {
             $msisdn = $this->toMsisdn($phone);
@@ -243,7 +244,25 @@ class GpConsentService
 
             Log::info('GP SMS response', ['acr' => $acr, 'body' => $body]);
 
-            return isset($body['outboundSMSMessageRequest']['resourceURL']);
+            $sent   = isset($body['outboundSMSMessageRequest']['resourceURL']);
+            $status = $sent ? 'Sent' : ($body['requestError']['serviceException']['text'] ?? 'Failed');
+
+            if ($txnRef) {
+                SmsLog::updateOrCreate(
+                    ['txn_ref' => $txnRef],
+                    [
+                        'msisdn'         => $msisdn,
+                        'message'        => $message,
+                        'url'            => $url,
+                        'request_body'   => json_encode($payload),
+                        'response'       => json_encode($body),
+                        'status_message' => $status,
+                        'sent_at'        => now(),
+                    ]
+                );
+            }
+
+            return $sent;
 
         } catch (\Throwable $e) {
             Log::error('GP SMS error', ['acr' => $acr, 'error' => $e->getMessage()]);

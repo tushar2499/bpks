@@ -18,7 +18,7 @@ class CustomerCareController extends Controller
         if ($request->filled('phone')) {
             $phone = trim($request->phone);
 
-            $transactions = Transaction::with(['smsLog'])
+            $transactions = Transaction::with(['smsLog', 'consentLogs'])
                 ->where('phone', $phone)
                 ->orderByDesc('created_at')
                 ->get();

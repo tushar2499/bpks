@@ -143,7 +143,7 @@ class CallbackController extends Controller
             if ($transaction->operator === 'Grameenphone') {
                 $acr  = $transaction->gp_customer_ref;
                 $sent = $acr
-                    ? (new GpConsentService())->sendSms($acr, $transaction->phone, $gpMessage)
+                    ? (new GpConsentService())->sendSms($acr, $transaction->phone, $gpMessage, $transaction->txn_ref)
                     : false;
                 $note = $sent ? null : 'Missing ACR or GP SMS failed';
             } else {

@@ -179,10 +179,12 @@
                   @endif
                 </td>
                 <td>
+                  @php
+                    $smsSentViaLog = !$txn->smsLog && $txn->consentLogs->contains('step', 'sms_sent');
+                    $smsFailedViaLog = !$txn->smsLog && $txn->consentLogs->contains('step', 'sms_failed');
+                  @endphp
                   @if($txn->smsLog)
-                    @php
-                      $smsOk = !in_array($txn->smsLog->status_message, ['Failed', 'Unknown', '']);
-                    @endphp
+                    @php $smsOk = !in_array($txn->smsLog->status_message, ['Failed', 'Unknown', '']) && $txn->smsLog->status_message; @endphp
                     @if($smsOk)
                       <span class="badge bg-success-subtle text-success border border-success-subtle">
                         <i class="fas fa-check me-1"></i>পাঠানো হয়েছে
@@ -192,6 +194,14 @@
                         <i class="fas fa-times me-1"></i>ব্যর্থ
                       </span>
                     @endif
+                  @elseif($smsSentViaLog)
+                    <span class="badge bg-success-subtle text-success border border-success-subtle">
+                      <i class="fas fa-check me-1"></i>পাঠানো হয়েছে
+                    </span>
+                  @elseif($smsFailedViaLog)
+                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle">
+                      <i class="fas fa-times me-1"></i>ব্যর্থ
+                    </span>
                   @else
                     <span class="text-muted small">—</span>
                   @endif

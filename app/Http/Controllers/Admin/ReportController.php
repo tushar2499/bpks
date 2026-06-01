@@ -195,7 +195,7 @@ class ReportController extends Controller
                        . " ডাউনলোড টিকিট: '{$downloadUrl}'"
                        . " | হেল্পলাইন: +8801725298711 (চার্জ প্রযোজ্য)";
 
-            $sent = (new GpConsentService())->sendSms($acr, $transaction->phone, $gpMessage);
+            $sent = (new GpConsentService())->sendSms($acr, $transaction->phone, $gpMessage, $transaction->txn_ref);
         } else {
             $message = "প্রিয় গ্রাহক, আপনার BPKS লটারি টিকেট কেনা সফল হয়েছে।\n"
                      . "টিকেট নম্বর: {$ticketNos}\n"
