@@ -48,7 +48,9 @@ class ReportController extends Controller
                     COUNT(*) as total,
                     SUM(status = 1) as sold,
                     SUM(status = 0) as unsold,
-                    SUM(status = 2) as reserved')
+                    SUM(status = 2) as reserved,
+                    MIN(ticket_no) as min_ticket,
+                    MAX(ticket_no) as max_ticket')
                 ->groupBy('operator', 'series', 'sale_tier')
                 ->orderBy('operator')->orderBy('series')->orderBy('sale_tier')
                 ->get()

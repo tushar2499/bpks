@@ -124,6 +124,7 @@
             <th class="ps-3">অপারেটর</th>
             <th>সিরিজ</th>
             <th class="text-center">টায়ার</th>
+            <th>রেঞ্জ</th>
             <th class="text-center">মোট</th>
             <th class="text-center">বিক্রিত</th>
             <th class="text-center">বাকি</th>
@@ -155,6 +156,9 @@
                 <span class="badge" style="font-size:.7rem;background:{{ $isActive ? '#f59e0b' : ($isDone ? '#10b981' : '#94a3b8') }};color:#fff;">
                   T{{ $row->sale_tier }}
                 </span>
+              </td>
+              <td class="font-monospace" style="font-size:.68rem;white-space:nowrap;">
+                {{ $row->min_ticket }}<br><span class="text-muted">↓</span><br>{{ $row->max_ticket }}
               </td>
               <td class="text-center small">{{ number_format($row->total) }}</td>
               <td class="text-center small fw-semibold text-success">{{ number_format($row->sold) }}</td>
