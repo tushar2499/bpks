@@ -77,16 +77,16 @@
       <a href="{{ route('admin.reports.index') }}" class="nav-link {{ request()->routeIs('admin.reports.index') ? 'active' : '' }}">
         <i class="fas fa-chart-bar fa"></i> রিপোর্ট
       </a>
-      <a href="{{ route('admin.reports.daily') }}" class="nav-link {{ request()->routeIs('admin.reports.daily') ? 'active' : '' }}">
-        <i class="fas fa-calendar-alt fa"></i> দৈনিক রিপোর্ট
-      </a>
       <a href="{{ route('admin.reports.sms') }}" class="nav-link {{ request()->routeIs('admin.reports.sms') ? 'active' : '' }}">
         <i class="fas fa-sms fa"></i> SMS ব্যর্থতা
+      </a>
+      @endif
+      <a href="{{ route('admin.reports.daily') }}" class="nav-link {{ request()->routeIs('admin.reports.daily') ? 'active' : '' }}">
+        <i class="fas fa-calendar-alt fa"></i> দৈনিক রিপোর্ট
       </a>
       <a href="{{ route('admin.journey.index') }}" class="nav-link {{ request()->routeIs('admin.journey.*') ? 'active' : '' }}">
         <i class="fas fa-route fa"></i> কাস্টমার জার্নি
       </a>
-      @endif
       <a href="{{ route('admin.customer-care.index') }}" class="nav-link {{ request()->routeIs('admin.customer-care.*') ? 'active' : '' }}">
         <i class="fas fa-headset fa"></i> কাস্টমার কেয়ার
       </a>

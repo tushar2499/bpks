@@ -26,8 +26,8 @@ class AdminAuth
             }
         }
 
-        // Reports + Journey + SMS: admin and operator only
-        if ($request->routeIs('admin.reports.*', 'admin.journey.*')) {
+        // Main reports + SMS (not daily): admin and operator only
+        if ($request->routeIs('admin.reports.index', 'admin.reports.csv', 'admin.reports.pdf', 'admin.reports.sms', 'admin.reports.sms.retry')) {
             if ($user->isCustomerCare()) {
                 abort(403, 'Access denied.');
             }
