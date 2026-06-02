@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\JourneyController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\TicketController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\BlinkController;
 use App\Http\Controllers\BuyController;
 use App\Http\Controllers\CallbackController;
 use App\Http\Controllers\MyTicketController;
@@ -38,6 +39,18 @@ Route::get('/my-ticket', [MyTicketController::class, 'show'])->name('my-ticket.s
 Route::post('/my-ticket', [MyTicketController::class, 'find'])->name('my-ticket.find')
     ->middleware('throttle:3,60');
 
+// ─── Blink Notify (Blink POSTs here after successful charge) ─────────────────
+Route::post('/api/blink-notify', [CallbackController::class, 'blinkNotify'])
+    ->withoutMiddleware([VerifyCsrfToken::class])
+    ->name('blink.notify');
+
+// ─── Blink (Banglalink OTP) Flow ─────────────────────────────────────────────
+Route::get('/blink/otp/{txnRef}',     [BlinkController::class, 'showOtpPage'])->name('blink.otp');
+Route::post('/blink/otp/{txnRef}',    [BlinkController::class, 'submitOtp'])->name('blink.otp.submit');
+Route::get('/blink/waiting/{txnRef}', [BlinkController::class, 'showWaitingPage'])->name('blink.waiting');
+Route::get('/blink/status/{txnRef}',  [BlinkController::class, 'pollStatus'])->name('blink.status');
+Route::post('/blink/resend/{txnRef}', [BlinkController::class, 'resendOtp'])->name('blink.resend');
+
 // ─── SMS Delivery Notify (Robi calls this with delivery status) ──────────────
 Route::post('/sms-notify/{smsLogId}', [CallbackController::class, 'smsNotify'])
     ->withoutMiddleware([VerifyCsrfToken::class])
@@ -62,6 +75,8 @@ Route::prefix('callback')->name('callback.')->withoutMiddleware([VerifyCsrfToken
     Route::post('robi',         [CallbackController::class, 'robi'])->name('robi');
     Route::post('grameenphone', [CallbackController::class, 'grameenphone'])->name('grameenphone');
     Route::post('banglalink',   [CallbackController::class, 'banglalink'])->name('banglalink');
+    Route::post('blink',        [CallbackController::class, 'blinkNotify'])->name('blink');
+
 });
 
 // ─── Admin ──────────────────────────────────────────────────────────────────

@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BlinkNotifyLog;
 use App\Models\ConsentLog;
 use App\Models\SmsLog;
 use App\Models\Ticket;
 use App\Models\Transaction;
+use App\Services\Blink\BlinkService;
 use App\Services\DCB\GpConsentService;
 use App\Services\SMS\RobiSmsService;
 use Illuminate\Http\Request;
@@ -396,6 +398,126 @@ class CallbackController extends Controller
         $dcbTxnId   = $request->input('transactionId');
 
         return $this->process($externalId, $success, $dcbTxnId, $request->all());
+    }
+
+    // ── Blink (Banglalink SDP) async notify ───────────────────────────────────
+
+    public function blinkNotify(Request $request)
+    {
+        $payload       = $request->all();
+        $blinkTxnId    = $payload['transectionId'] ?? null;
+        $rawStatus     = $payload['status']         ?? '';
+        $chargeAmount  = $payload['ChargeAmount']   ?? null;
+
+        Log::info('Blink notify', $payload);
+
+        // Store every notify hit in its own log table first
+        $notifyLog = BlinkNotifyLog::create([
+            'blink_txn_id'  => $blinkTxnId ?? 'unknown',
+            'status'        => $rawStatus,
+            'charge_amount' => is_numeric($chargeAmount) ? $chargeAmount : null,
+            'payload'       => json_encode($payload),
+            'matched'       => 'no',
+        ]);
+
+        if (!$blinkTxnId) {
+            Log::warning('Blink notify: missing transectionId', $payload);
+            return response()->json(['result' => 'missing_transectionId'], 200);
+        }
+
+        // Match transaction by blink_txn_id stored during OTP request
+        $transaction = Transaction::where('blink_txn_id', $blinkTxnId)
+            ->where('operator', 'Banglalink')
+            ->first();
+
+        if (!$transaction) {
+            Log::warning('Blink notify: no transaction matched', ['blink_txn_id' => $blinkTxnId]);
+            $notifyLog->update(['matched' => 'no']);
+            return response()->json(['result' => 'not_found'], 200);
+        }
+
+        $notifyLog->update(['txn_ref' => $transaction->txn_ref]);
+
+        // Idempotent: already processed
+        if ($transaction->status === 'success') {
+            $notifyLog->update(['matched' => 'duplicate']);
+            return response()->json(['result' => 'already_success'], 200);
+        }
+
+        // Blink typo: "succss" — also accept "success" in case they fix it later
+        $isSuccess = in_array(strtolower($rawStatus), ['succss', 'success']);
+
+        $ids = $transaction->ticket_ids ?? [$transaction->ticket_id];
+
+        DB::transaction(function () use ($transaction, $payload, $ids, $isSuccess) {
+            $transaction->update(['dcb_response' => json_encode($payload)]);
+
+            if ($isSuccess) {
+                Ticket::whereIn('id', array_filter($ids))
+                    ->where('status', 2)
+                    ->update(['status' => 1, 'phone' => $transaction->phone, 'sold_at' => now()]);
+
+                $transaction->update(['status' => 'success', 'confirmed_at' => now()]);
+            } else {
+                Ticket::whereIn('id', array_filter($ids))
+                    ->where('status', 2)
+                    ->update(['status' => 0]);
+
+                $transaction->update(['status' => 'failed', 'failure_reason' => 'Blink status: ' . $rawStatus]);
+            }
+        });
+
+        $notifyLog->update(['matched' => 'yes']);
+
+        ConsentLog::record($transaction->txn_ref, $transaction->phone, 'notify_received', $payload);
+
+        if ($isSuccess) {
+            ConsentLog::record($transaction->txn_ref, $transaction->phone, 'ticket_assigned', ['ticket_ids' => $ids]);
+            $this->sendBlinkTicketSms($transaction);
+        } else {
+            ConsentLog::record($transaction->txn_ref, $transaction->phone, 'failed', null, 'Blink status: ' . $rawStatus);
+        }
+
+        return response()->json(['result' => 'ok'], 200);
+    }
+
+    private function sendBlinkTicketSms(Transaction $transaction): void
+    {
+        $ids     = $transaction->ticket_ids ?? [$transaction->ticket_id];
+        $tickets = Ticket::whereIn('id', array_filter($ids))->get();
+
+        if ($tickets->isEmpty()) {
+            ConsentLog::record($transaction->txn_ref, $transaction->phone, 'sms_failed', null, 'tickets not found');
+            return;
+        }
+
+        $ticketNos   = $tickets->pluck('ticket_no')->implode(', ');
+        $amount      = number_format($transaction->amount, 2);
+        $downloadUrl = route('ticket.download-all-pdf', ['phone' => $transaction->phone]);
+        $message     = "প্রিয় গ্রাহক, আপনার BPKS লটারি টিকেট কেনা সফল হয়েছে। টিকেট নম্বর: {$ticketNos}. মূল্য: ৳{$amount}, লেনদেন: {$transaction->txn_ref}. টিকেট ডাউনলোড: {$downloadUrl}";
+
+        $sent = (new BlinkService())->sendSms($transaction->phone, $message, $transaction->txn_ref);
+        $step = $sent ? 'sms_sent' : 'sms_failed';
+        ConsentLog::record($transaction->txn_ref, $transaction->phone, $step, ['ticket_nos' => $ticketNos]);
+    }
+
+    private function normalizeMsisdn(string $raw): ?string
+    {
+        $clean = preg_replace('/\D/', '', $raw);
+
+        if (strlen($clean) === 13 && str_starts_with($clean, '880')) {
+            return '0' . substr($clean, 3);
+        }
+
+        if (strlen($clean) === 11 && str_starts_with($clean, '0')) {
+            return $clean;
+        }
+
+        if (strlen($clean) === 10 && str_starts_with($clean, '1')) {
+            return '0' . $clean;
+        }
+
+        return null;
     }
 
     private function process(string $txnRef, bool $success, ?string $dcbTxnId, array $raw): \Illuminate\Http\JsonResponse

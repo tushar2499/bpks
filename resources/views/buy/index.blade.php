@@ -286,7 +286,7 @@
             <div class="fw-bold mb-1" style="font-size:.95rem;">
               <i class="fas fa-ticket-alt me-1"></i> টিকেট কিনুন
             </div>
-            <div class="price-tag" style="font-size:1.5rem;">২০ টাকা</div>
+            <div class="price-tag" style="font-size:1.5rem;">২০ টাকা <span style="font-size:.9rem;font-weight:500;opacity:.85;">(ট্যাক্স সহ)</span></div>
             <div class="mt-1" style="font-size:.78rem;opacity:.8;">মোবাইল ব্যালেন্স থেকে কাটা হবে</div>
           </div>
           <div class="buy-card-body">
@@ -540,7 +540,7 @@
     ).join('');
     whatsappCareBox.style.display = '';
   }
-  const MULTI_TICKET_PREFIXES = new Set(['013','017','016','018']);
+  const MULTI_TICKET_PREFIXES = new Set(['013','017','016','018','014','019']);
 
   let qty = 1;
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ConsentLog;
 use App\Models\Ticket;
 use App\Models\Transaction;
+use App\Services\Blink\BlinkService;
 use App\Services\DCB\DCBFactory;
 use App\Services\DCB\GpConsentService;
 use App\Services\DCB\RobiConsentService;
@@ -44,10 +45,13 @@ class BuyController extends Controller
             return back()->withErrors(['phone' => 'Teletalk এখনো সাপোর্ট করা হয়নি।'])->withInput();
         }
 
-        // Rate limit: 1 pending purchase per phone per 2 minutes
+        // Blink (Banglalink) flow needs more time — 15 min window; others use 2 min
+        $rateWindow = $operator === 'Banglalink' ? 15 : 2;
+
+        // Rate limit: 1 pending purchase per phone per window
         $recentTxn = Transaction::where('phone', $phone)
             ->where('status', 'pending')
-            ->where('created_at', '>=', now()->subMinutes(2))
+            ->where('created_at', '>=', now()->subMinutes($rateWindow))
             ->exists();
 
         if ($recentTxn) {
@@ -133,6 +137,11 @@ class BuyController extends Controller
             return $this->initiateGpConsent($transaction);
         }
 
+        // ── Banglalink: Blink OTP-based consent flow ─────────────────────────
+        if ($operator === 'Banglalink') {
+            return $this->initiateBlinkFlow($transaction);
+        }
+
         // ── Other operators: direct charge ───────────────────────────────────
         try {
             $dcb      = DCBFactory::make($operator);
@@ -155,6 +164,32 @@ class BuyController extends Controller
         $this->rollbackTransaction($transaction, $response['failure_reason']);
 
         return back()->withErrors(['phone' => 'পেমেন্ট ব্যর্থ হয়েছে: ' . ($response['failure_reason'] ?? 'অজানা কারণ')])->withInput();
+    }
+
+    private function initiateBlinkFlow(Transaction $transaction): \Illuminate\Http\RedirectResponse
+    {
+        try {
+            $result = (new BlinkService())->requestOtp($transaction->phone, max(1, (int) ($transaction->qty ?? 1)));
+        } catch (\Throwable $e) {
+            Log::error('Blink OTP request error', ['txn' => $transaction->txn_ref, 'err' => $e->getMessage()]);
+            $this->rollbackTransaction($transaction);
+            return back()->withErrors(['phone' => 'OTP পাঠাতে সমস্যা হয়েছে। পরে চেষ্টা করুন।'])->withInput();
+        }
+
+        if (!$result['success']) {
+            Log::warning('Blink OTP request failed', ['txn' => $transaction->txn_ref, 'result' => $result]);
+            $this->rollbackTransaction($transaction);
+            return back()->withErrors(['phone' => 'OTP পাঠানো যায়নি। পরে চেষ্টা করুন।'])->withInput();
+        }
+
+        $transaction->update([
+            'blink_otp_requested_at' => now(),
+            'blink_txn_id'           => $result['transectionId'],
+        ]);
+
+        ConsentLog::record($transaction->txn_ref, $transaction->phone, 'otp_sent', $result);
+
+        return redirect()->route('blink.otp', $transaction->txn_ref);
     }
 
     private function initiateRobiConsent(Transaction $transaction): \Illuminate\Http\RedirectResponse

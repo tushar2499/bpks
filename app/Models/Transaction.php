@@ -11,11 +11,13 @@ class Transaction extends Model
         'status', 'dcb_txn_id', 'dcb_response', 'failure_reason', 'confirmed_at',
         'nonce', 'consent_url', 'consent_payload', 'consent_initiated_at',
         'gp_consent_id', 'gp_customer_ref', 'gp_charge_request', 'gp_recharge_ref',
+        'blink_otp_requested_at', 'blink_txn_id',
     ];
 
     protected $casts = [
-        'confirmed_at'         => 'datetime',
-        'consent_initiated_at' => 'datetime',
+        'confirmed_at'          => 'datetime',
+        'consent_initiated_at'  => 'datetime',
+        'blink_otp_requested_at' => 'datetime',
         'amount'               => 'decimal:2',
         'consent_payload'      => 'array',
         'ticket_ids'           => 'array',
