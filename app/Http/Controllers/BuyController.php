@@ -66,22 +66,26 @@ class BuyController extends Controller
                 ->groupBy('series')
                 ->pluck('active_tier', 'series');
 
-            $tickets = Ticket::where('status', 0)
+            // Phase 1: randomly pick candidate IDs (no lock — avoids full-scan deadlock)
+            $tierFilter = function ($q) use ($activeTiers) {
+                foreach ($activeTiers as $series => $tier) {
+                    $q->orWhere(fn($q2) => $q2->where('series', $series)->where('sale_tier', $tier));
+                }
+                $q->orWhereNull('series');
+            };
+
+            $candidateIds = Ticket::where('status', 0)
                 ->where('operator', $operator)
-                ->where(function ($q) use ($activeTiers) {
-                    foreach ($activeTiers as $series => $tier) {
-                        $q->orWhere(fn($q2) => $q2->where('series', $series)->where('sale_tier', $tier));
-                    }
-                    $q->orWhereNull('series'); // fallback for any unbackfilled rows
-                })
-                // Deterministic PK order instead of ORDER BY RAND(): uses the primary-key
-                // index (no full-scan + filesort on every purchase), and gives all
-                // concurrent buyers a consistent lock-acquisition order so InnoDB cannot
-                // form a lock cycle -> eliminates same-node deadlocks. Tickets are
-                // allocated lowest-id-first; the draw remains independent.
+                ->where($tierFilter)
+                ->inRandomOrder()
+                ->limit($qty)
+                ->pluck('id');
+
+            // Phase 2: lock those specific IDs in ascending order (consistent lock order → no deadlock)
+            $tickets = Ticket::whereIn('id', $candidateIds)
+                ->where('status', 0)
                 ->orderBy('id')
                 ->lockForUpdate()
-                ->limit($qty)
                 ->get();
 
             if ($tickets->count() < $qty) {
