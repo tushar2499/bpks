@@ -59,6 +59,22 @@
   </div>
 </div>
 
+@if(Auth::user()->isAdmin() && $stuckCount > 0)
+<div class="alert alert-warning d-flex align-items-center justify-content-between mb-4" style="border-radius:1rem;">
+  <div>
+    <i class="fas fa-exclamation-triangle me-2"></i>
+    <strong>{{ number_format($stuckCount) }} টি</strong> টিকেট ১ ঘণ্টারও বেশি সময় ধরে রিজার্ভড অবস্থায় আছে।
+  </div>
+  <form method="POST" action="{{ route('admin.tickets.release-stuck') }}" class="ms-3">
+    @csrf
+    <button type="submit" class="btn btn-warning btn-sm fw-bold"
+            onclick="return confirm('{{ $stuckCount }} টি রিজার্ভড টিকেট রিলিজ করবেন?')">
+      <i class="fas fa-unlock me-1"></i>রিলিজ করুন
+    </button>
+  </form>
+</div>
+@endif
+
 <!-- Progress Bar -->
 @if($stats->total > 0)
 <div class="card mb-4" style="border-radius:1rem;border:none;">

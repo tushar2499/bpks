@@ -57,6 +57,10 @@ class DashboardController extends Controller
             $chartDatasets[$op] = ['qty' => $qtyRow, 'revenue' => $revRow];
         }
 
-        return view('admin.dashboard', compact('stats', 'recentSold', 'chartDates', 'chartOperators', 'chartDatasets'));
+        $stuckCount = $user->isAdmin()
+            ? \App\Models\Ticket::where('status', 2)->where('updated_at', '<', now()->subHour())->count()
+            : 0;
+
+        return view('admin.dashboard', compact('stats', 'recentSold', 'chartDates', 'chartOperators', 'chartDatasets', 'stuckCount'));
     }
 }

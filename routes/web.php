@@ -78,6 +78,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('tickets', [TicketController::class, 'index'])->name('tickets.index');
         Route::get('tickets/generate', [TicketController::class, 'generateForm'])->name('tickets.generate');
         Route::post('tickets/generate', [TicketController::class, 'generate'])->name('tickets.generate.post');
+        Route::post('tickets/release-stuck', [TicketController::class, 'releaseStuck'])->name('tickets.release-stuck');
         Route::post('tickets/bulk-delete', [TicketController::class, 'bulkDelete'])->name('tickets.bulk-delete');
         Route::post('tickets/{ticket}/sell', [TicketController::class, 'sell'])->name('tickets.sell');
         Route::delete('tickets/{ticket}', [TicketController::class, 'destroy'])->name('tickets.destroy');

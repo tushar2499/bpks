@@ -137,6 +137,15 @@ class TicketController extends Controller
         return back()->with('success', 'টিকেট মুছে দেওয়া হয়েছে।');
     }
 
+    public function releaseStuck()
+    {
+        $released = Ticket::where('status', 2)
+            ->where('updated_at', '<', now()->subHour())
+            ->update(['status' => 0]);
+
+        return back()->with('success', number_format($released) . ' টি রিজার্ভড টিকেট রিলিজ করা হয়েছে।');
+    }
+
     public function bulkDelete(Request $request)
     {
         $request->validate(['ids' => 'required|array', 'ids.*' => 'integer']);
