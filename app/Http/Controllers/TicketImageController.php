@@ -34,6 +34,9 @@ class TicketImageController extends Controller
         $basePath = public_path('bpks-lottery.png');
         $fontPath = public_path('fonts/arialbd.ttf');
 
+        abort_if(!file_exists($basePath), 500, 'Ticket template image not found.');
+        abort_if(!file_exists($fontPath), 500, 'Font file not found.');
+
         $img = imagecreatefrompng($basePath);
         imageAlphaBlending($img, true);
         imageSaveAlpha($img, true);
@@ -51,15 +54,13 @@ class TicketImageController extends Controller
 
         $filename = 'BPKS-Ticket-' . $ticketNo . '.png';
 
-        setcookie('dl_ready', '1', time() + 60, '/', '', false, false);
-
-        header('Content-Type: image/png');
-        header('Content-Disposition: attachment; filename="' . $filename . '"');
-        header('Cache-Control: no-cache');
-
-        imagepng($img);
-        imagedestroy($img);
-        exit;
+        return response()->stream(function () use ($img) {
+            imagepng($img, null, 8);
+        }, 200, [
+            'Content-Type'        => 'image/png',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Cache-Control'       => 'no-cache, no-store',
+        ])->cookie('dl_ready', '1', 1, '/', null, false, false);
     }
 
     public function downloadPdf(Request $request)
@@ -142,7 +143,7 @@ class TicketImageController extends Controller
         $srcW = imagesx($src);
         $srcH = imagesy($src);
 
-        $dstW = 800;
+        $dstW = 580;
         $dstH = (int) round($srcH * $dstW / $srcW);
 
         $dst = imagecreatetruecolor($dstW, $dstH);
@@ -162,7 +163,7 @@ class TicketImageController extends Controller
         $this->stampSecurityBand($dst, $dstW, $dstH, $txnRef, $phone, $scale);
 
         ob_start();
-        imagejpeg($dst, null, 90);
+        imagejpeg($dst, null, 72);
         $data = ob_get_clean();
         imagedestroy($dst);
 

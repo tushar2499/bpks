@@ -86,31 +86,37 @@ class BuyController extends Controller
                     ->groupBy('series')
                     ->pluck('active_tier', 'series');
 
-                // Build tier WHERE clause for raw SKIP LOCKED query
-                $tierParts = [];
-                $bindings  = [$operator];
+                // Phase 1: random candidate pool (no lock) — preserves random ticket selection
+                $tierFilter = function ($q) use ($activeTiers) {
+                    foreach ($activeTiers as $series => $tier) {
+                        $q->orWhere(fn($q2) => $q2->where('series', $series)->where('sale_tier', $tier));
+                    }
+                    $q->orWhereNull('series');
+                };
 
-                foreach ($activeTiers as $series => $tier) {
-                    $tierParts[] = '(series = ? AND sale_tier = ?)';
-                    $bindings[]  = $series;
-                    $bindings[]  = (int) $tier;
+                $candidateIds = Ticket::where('status', 0)
+                    ->where('operator', $operator)
+                    ->where($tierFilter)
+                    ->inRandomOrder()
+                    ->limit($qty * 3) // oversample so SKIP LOCKED still returns enough
+                    ->pluck('id')
+                    ->sort()          // ascending order for consistent lock ordering
+                    ->values();
+
+                if ($candidateIds->isEmpty()) {
+                    return ['error' => "দুঃখিত! {$operator} এর জন্য কোনো টিকেট পাওয়া যায়নি।"];
                 }
-                $tierParts[] = 'series IS NULL';
-                $bindings[]  = $qty;
 
-                $tierSql = implode(' OR ', $tierParts);
-
-                // SKIP LOCKED: concurrent transactions skip each other's locked rows instantly
-                // — eliminates lock wait timeouts and deadlocks under high traffic
+                // Phase 2: SKIP LOCKED on specific candidate IDs — no waiting on concurrent txns
+                $placeholders = implode(',', array_fill(0, $candidateIds->count(), '?'));
                 $rows = DB::select(
                     "SELECT * FROM tickets
-                     WHERE status = 0
-                       AND operator = ?
-                       AND ({$tierSql})
+                     WHERE id IN ({$placeholders})
+                       AND status = 0
                      ORDER BY id
                      LIMIT ?
                      FOR UPDATE SKIP LOCKED",
-                    $bindings
+                    [...$candidateIds->all(), $qty]
                 );
 
                 $tickets = collect($rows);
