@@ -81,22 +81,57 @@ class BuyController extends Controller
                     ->groupBy('series')
                     ->pluck('active_tier', 'series');
 
-                // Phase 1: random candidate pool (no lock) — preserves random ticket selection
-                $tierFilter = function ($q) use ($activeTiers) {
-                    foreach ($activeTiers as $series => $tier) {
-                        $q->orWhere(fn($q2) => $q2->where('series', $series)->where('sale_tier', $tier));
-                    }
-                    $q->orWhereNull('series');
-                };
+                // Phase 1: build a candidate id pool WITHOUT ORDER BY RAND().
+                // inRandomOrder() would filesort the entire (~280k-row) unsold set on
+                // the single write node on every purchase -> CPU saturation under sale
+                // traffic (the cause of the 2026-06-02 LB-down). Instead: pick a random
+                // active series, then a random id-pivot within it and scan forward along
+                // the PK index (covering range scan, no filesort). Loop across the
+                // remaining series so allocation never starves as inventory drains.
+                $oversample   = $qty * 3; // headroom so SKIP LOCKED still returns enough
+                $candidateIds = collect();
 
-                $candidateIds = Ticket::where('status', 0)
-                    ->where('operator', $operator)
-                    ->where($tierFilter)
-                    ->inRandomOrder()
-                    ->limit($qty * 3) // oversample so SKIP LOCKED still returns enough
-                    ->pluck('id')
-                    ->sort()          // ascending order for consistent lock ordering
-                    ->values();
+                foreach ($activeTiers->keys()->shuffle() as $series) {
+                    $tier   = $activeTiers[$series];
+                    $bounds = DB::table('tickets')
+                        ->where('operator', $operator)->where('series', $series)
+                        ->where('sale_tier', $tier)->where('status', 0)
+                        ->selectRaw('MIN(id) as mn, MAX(id) as mx')->first();
+
+                    if (!$bounds || $bounds->mn === null) {
+                        continue;
+                    }
+
+                    $pivot = random_int((int) $bounds->mn, (int) $bounds->mx);
+
+                    $base = fn() => Ticket::where('operator', $operator)
+                        ->where('series', $series)->where('sale_tier', $tier)
+                        ->where('status', 0);
+
+                    // forward from a random pivot, then wrap to the series start if short
+                    $ids = $base()->where('id', '>=', $pivot)
+                        ->orderBy('id')->limit($oversample)->pluck('id');
+                    if ($ids->count() < $oversample) {
+                        $ids = $ids->merge(
+                            $base()->where('id', '<', $pivot)
+                                ->orderBy('id')->limit($oversample)->pluck('id')
+                        );
+                    }
+
+                    $candidateIds = $candidateIds->merge($ids);
+                    if ($candidateIds->count() >= $oversample) {
+                        break;
+                    }
+                }
+
+                // Safety net for any unbackfilled (series IS NULL) rows
+                if ($candidateIds->isEmpty()) {
+                    $candidateIds = Ticket::where('status', 0)
+                        ->where('operator', $operator)
+                        ->orderBy('id')->limit($oversample)->pluck('id');
+                }
+
+                $candidateIds = $candidateIds->unique()->sort()->values();
 
                 if ($candidateIds->isEmpty()) {
                     return ['error' => "{$operator} গ্রাহকদের জন্য টিকিট বিক্রয় শিগগিরই উন্মুক্ত করা হবে।"];
