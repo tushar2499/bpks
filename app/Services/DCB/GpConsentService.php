@@ -108,7 +108,7 @@ class GpConsentService
                         ],
                     ],
                     'referenceCode'              => $txnRef,
-                    'operatorId'                 => $this->merchant,
+                    'operatorId'                 => $this->operatorId,
                     'transactionOperationStatus' => 'Charged',
                 ],
             ];
