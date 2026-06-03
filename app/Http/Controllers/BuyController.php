@@ -150,7 +150,10 @@ class BuyController extends Controller
             }, 3);
         } catch (\Throwable $e) {
             Log::error('Ticket allocation failed', ['operator' => $operator, 'phone' => $phone, 'err' => $e->getMessage()]);
-            return back()->withErrors(['phone' => 'সিস্টেম ব্যস্ত আছে। কয়েক সেকেন্ড পর আবার চেষ্টা করুন।'])->withInput();
+            $errMsg = config('app.debug')
+                ? 'DB Error: ' . $e->getMessage()
+                : 'সিস্টেম ব্যস্ত আছে। কয়েক সেকেন্ড পর আবার চেষ্টা করুন।';
+            return back()->withErrors(['phone' => $errMsg])->withInput();
         }
 
         if (isset($result['error'])) {
