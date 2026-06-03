@@ -104,7 +104,7 @@ class BuyController extends Controller
                     ->values();
 
                 if ($candidateIds->isEmpty()) {
-                    return ['error' => "দুঃখিত! {$operator} এর জন্য কোনো টিকেট পাওয়া যায়নি।"];
+                    return ['error' => "{$operator} গ্রাহকদের জন্য টিকিট বিক্রয় শিগগিরই উন্মুক্ত করা হবে।"];
                 }
 
                 // Phase 2: SKIP LOCKED on specific candidate IDs — no waiting on concurrent txns
@@ -124,7 +124,7 @@ class BuyController extends Controller
                 if ($tickets->count() < $qty) {
                     $found = $tickets->count();
                     return ['error' => $found === 0
-                        ? "দুঃখিত! {$operator} এর জন্য কোনো টিকেট পাওয়া যায়নি।"
+                        ? "{$operator} গ্রাহকদের জন্য টিকিট বিক্রয় শিগগিরই উন্মুক্ত করা হবে।"
                         : "দুঃখিত! মাত্র {$found}টি টিকেট পাওয়া যাচ্ছে।"];
                 }
 
