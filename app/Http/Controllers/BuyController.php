@@ -108,18 +108,30 @@ class BuyController extends Controller
                 }
 
                 // Phase 2: SKIP LOCKED on specific candidate IDs — no waiting on concurrent txns
-                $placeholders = implode(',', array_fill(0, $candidateIds->count(), '?'));
-                $rows = DB::select(
-                    "SELECT * FROM tickets
-                     WHERE id IN ({$placeholders})
-                       AND status = 0
-                     ORDER BY id
-                     LIMIT ?
-                     FOR UPDATE SKIP LOCKED",
-                    [...$candidateIds->all(), $qty]
-                );
-
-                $tickets = collect($rows);
+                // Falls back to lockForUpdate() on older MySQL that doesn't support SKIP LOCKED
+                try {
+                    $placeholders = implode(',', array_fill(0, $candidateIds->count(), '?'));
+                    $rows = DB::select(
+                        "SELECT * FROM tickets
+                         WHERE id IN ({$placeholders})
+                           AND status = 0
+                         ORDER BY id
+                         LIMIT ?
+                         FOR UPDATE SKIP LOCKED",
+                        [...$candidateIds->all(), $qty]
+                    );
+                    $tickets = collect($rows);
+                } catch (\Illuminate\Database\QueryException $e) {
+                    if ($e->getCode() === '42000') {
+                        $tickets = Ticket::whereIn('id', $candidateIds)
+                            ->where('status', 0)
+                            ->orderBy('id')
+                            ->lockForUpdate()
+                            ->get();
+                    } else {
+                        throw $e;
+                    }
+                }
 
                 if ($tickets->count() < $qty) {
                     $found = $tickets->count();
@@ -150,10 +162,7 @@ class BuyController extends Controller
             }, 3);
         } catch (\Throwable $e) {
             Log::error('Ticket allocation failed', ['operator' => $operator, 'phone' => $phone, 'err' => $e->getMessage()]);
-            $errMsg = config('app.debug')
-                ? 'DB Error: ' . $e->getMessage()
-                : 'সিস্টেম ব্যস্ত আছে। কয়েক সেকেন্ড পর আবার চেষ্টা করুন।';
-            return back()->withErrors(['phone' => $errMsg])->withInput();
+            return back()->withErrors(['phone' => 'সিস্টেম ব্যস্ত আছে। কয়েক সেকেন্ড পর আবার চেষ্টা করুন।'])->withInput();
         }
 
         if (isset($result['error'])) {
