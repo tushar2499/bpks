@@ -226,7 +226,7 @@ class GpConsentService
                 'outboundSMSMessageRequest' => [
                     'address'       => 'acr:' . $acr,
                     'senderAddress' => 'tel:+' . $msisdn,
-                    'messageType'   => 'ARN',
+                    'messageType'   => 'TICKETING',
                     'outboundSMSTextMessage' => [
                         'message' => $message,
                     ],
