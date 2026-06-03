@@ -45,32 +45,27 @@ class BuyController extends Controller
             return back()->withErrors(['phone' => 'Teletalk এখনো সাপোর্ট করা হয়নি।'])->withInput();
         }
 
-        // Blink (Banglalink) flow needs more time — 15 min window; others use 2 min
-        $rateWindow = $operator === 'Banglalink' ? 15 : 2;
+        // Banglalink (Blink): cancel any existing pending transaction so user can retry freely
+        if ($operator === 'Banglalink') {
+            $staleTxn = Transaction::where('phone', $phone)
+                ->where('operator', 'Banglalink')
+                ->where('status', 'pending')
+                ->latest()
+                ->first();
 
-        // Rate limit: 1 pending purchase per phone per window
-        $recentTxn = Transaction::where('phone', $phone)
-            ->where('status', 'pending')
-            ->where('created_at', '>=', now()->subMinutes($rateWindow))
-            ->exists();
-
-        if ($recentTxn) {
-            if ($operator === 'Banglalink') {
-                $pendingTxn = Transaction::where('phone', $phone)
-                    ->where('operator', 'Banglalink')
-                    ->where('status', 'pending')
-                    ->where('created_at', '>=', now()->subMinutes(15))
-                    ->latest()
-                    ->first();
-
-                $otpUrl  = $pendingTxn ? route('blink.otp', $pendingTxn->txn_ref) : null;
-                $waitMsg = $otpUrl
-                    ? 'আপনার একটি লেনদেন চলছে। <a href="' . $otpUrl . '">OTP পেজে ফিরুন</a> অথবা ১৫ মিনিট পর চেষ্টা করুন।'
-                    : 'আপনার একটি লেনদেন চলছে। ১৫ মিনিট পর চেষ্টা করুন।';
-            } else {
-                $waitMsg = 'আপনার একটি লেনদেন চলছে। ২ মিনিট পর চেষ্টা করুন।';
+            if ($staleTxn) {
+                $this->rollbackTransaction($staleTxn, 'Superseded by new purchase attempt');
             }
-            return back()->withErrors(['phone' => $waitMsg])->withInput();
+        } else {
+            // Rate limit: 1 pending purchase per phone per 2 minutes
+            $recentTxn = Transaction::where('phone', $phone)
+                ->where('status', 'pending')
+                ->where('created_at', '>=', now()->subMinutes(2))
+                ->exists();
+
+            if ($recentTxn) {
+                return back()->withErrors(['phone' => 'আপনার একটি লেনদেন চলছে। ২ মিনিট পর চেষ্টা করুন।'])->withInput();
+            }
         }
 
         // Atomic: allocate qty unsold tickets using SKIP LOCKED — never waits on other transactions
