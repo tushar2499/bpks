@@ -194,7 +194,7 @@ class ReportController extends Controller
 
             $gpMessage = "আপনি সফল ভাবে BPKS লটারির টিকিট ক্রয় করেছেন। চার্জ ২০ টাকা।"
                        . " টিকেট নাম্বার: '{$ticketNos}' ,"
-                       . " ডাউনলোড টিকিট: '{$downloadUrl}'"
+                       . " ডাউনলোড টিকিট: {$downloadUrl}"
                        . " | হেল্পলাইন: +8801725298711 (চার্জ প্রযোজ্য)";
 
             $sent = (new GpConsentService())->sendSms($acr, $transaction->phone, $gpMessage, $transaction->txn_ref);
