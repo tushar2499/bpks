@@ -212,13 +212,6 @@
      data-filename="BPKS-Tickets-{{ $transaction->txn_ref }}.pdf">
     <i class="fas fa-file-pdf me-1"></i> সব টিকেট PDF ডাউনলোড ({{ $allTickets->count()}}টি)
   </a>
-  @foreach($allTickets as $t)
-  <a href="{{ route('ticket.download', ['ref' => $transaction->txn_ref, 'ticket_no' => $t->ticket_no]) }}"
-     class="btn btn-buy-more mb-2" download style="font-size:.85rem;padding:.6rem;"
-     data-filename="BPKS-Ticket-{{ $t->ticket_no }}.png">
-    <i class="fas fa-image me-1"></i> {{ $t->ticket_no }}
-  </a>
-  @endforeach
   <a href="{{ route('buy.index') }}" class="btn btn-buy-more"
      style="background:linear-gradient(135deg,#64748b,#475569);">
     <i class="fas fa-plus me-1"></i> আরও টিকেট কিনুন
