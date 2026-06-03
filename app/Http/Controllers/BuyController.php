@@ -171,7 +171,9 @@ class BuyController extends Controller
                 }
 
                 $txnRef      = 'BPKS' . strtoupper(Str::random(13)); // no hyphen — Robi accepts alphanumeric only
-                $totalAmount = $tickets->sum('sell_price');
+                $totalAmount = $operator === 'Banglalink'
+                    ? (config('dcb.banglalink.prices')[$qty] ?? $tickets->sum('sell_price'))
+                    : $tickets->sum('sell_price');
                 $ticketIds   = $tickets->pluck('id')->all();
 
                 $transaction = Transaction::create([

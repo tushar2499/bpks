@@ -292,7 +292,7 @@
           <div class="buy-card-body">
             @if($errors->any())
               <div class="alert alert-danger py-2 mb-3">
-                <i class="fas fa-exclamation-circle me-1"></i>{{ $errors->first() }}
+                <i class="fas fa-exclamation-circle me-1"></i>{!! $errors->first() !!}
               </div>
             @endif
 
@@ -523,6 +523,8 @@
     '015':'টেলিটক',
   };
 
+  const BL_PRICES = {1:20,2:40,3:60,4:80,5:99.99,6:119.99,7:139.99,8:159.99,9:179.99,10:199.98};
+
   const WA_NUMBERS = {
     '013': [['8801708400182','+880 1708-400182'],['8801701677479','+880 1701-677479']],
     '017': [['8801708400182','+880 1708-400182'],['8801701677479','+880 1701-677479']],
@@ -544,11 +546,20 @@
 
   let qty = 1;
 
+  function isBanglalink() {
+    const px = getPrefix(phoneInput.value);
+    return px === '014' || px === '019';
+  }
+
   function updateQty(n) {
     qty = Math.max(1, Math.min(10, n));
-    qtyNumEl.textContent   = toBangla(qty);
-    qtyInput.value         = qty;
-    qtyTotalRow.textContent = 'মোট: ' + toBangla(qty * 20) + ' টাকা';
+    qtyNumEl.textContent = toBangla(qty);
+    qtyInput.value       = qty;
+    if (isBanglalink()) {
+      qtyTotalRow.textContent = 'মোট: ' + BL_PRICES[qty] + ' টাকা (ট্যাক্স সহ)';
+    } else {
+      qtyTotalRow.textContent = 'মোট: ' + toBangla(qty * 20) + ' টাকা';
+    }
     qtyMinus.disabled = qty <= 1;
     qtyPlus.disabled  = qty >= 10;
   }
@@ -579,6 +590,7 @@
     }
     if (op && MULTI_TICKET_PREFIXES.has(px)) {
       qtyBox.style.display = '';
+      updateQty(qty); // refresh total display for new operator
     } else {
       qtyBox.style.display = 'none';
       updateQty(1);
@@ -595,9 +607,12 @@
     if (!op) { phoneInput.focus(); phoneInput.style.outline='2px solid #ef4444'; return; }
     phoneInput.style.outline='';
     const display  = val.length===11 ? val : '0'+val;
-    const total    = qty * 20;
-    const qtyLine  = qty > 1 ? `<br><span style="font-size:.85rem;color:var(--muted);">${toBangla(qty)} টি টিকেট × ২০ টাকা</span>` : '';
-    confirmMsg.innerHTML = `<strong>${op}</strong> নম্বর<br><strong class="text-primary fs-5">${display}</strong>${qtyLine}<br>থেকে <strong class="text-danger">${toBangla(total)} টাকা</strong> কাটা হবে।`;
+    const bl       = isBanglalink();
+    const total    = bl ? BL_PRICES[qty] : qty * 20;
+    const qtyLine  = qty > 1
+      ? `<br><span style="font-size:.85rem;color:var(--muted);">${toBangla(qty)} টি টিকেট${bl ? ' (ট্যাক্স সহ)' : ' × ২০ টাকা'}</span>`
+      : '';
+    confirmMsg.innerHTML = `<strong>${op}</strong> নম্বর<br><strong class="text-primary fs-5">${display}</strong>${qtyLine}<br>থেকে <strong class="text-danger">${total} টাকা</strong> কাটা হবে।`;
     confirmModal.show();
   }
 

@@ -8,7 +8,7 @@ return [
         'password'     => '1JKpKKUVulyvAbedyiSfBc',
         'operator_id'  => 'GRA-BD',
         'amount'       => 17.391,
-        'merchant'     => 'GRA-BD',
+        'merchant'     => 'BPKSLotteryTicket',
         'country_code' => 880,
         'product_id'   => 'BPKSLotteryTicket',
         'product_desc' => 'BPKS Lottery Ticket',
@@ -30,6 +30,11 @@ return [
         'client_id'     => env('BL_DCB_CLIENT_ID', ''),
         'client_secret' => env('BL_DCB_CLIENT_SECRET', ''),
         'service_id'    => env('BL_DCB_SERVICE_ID', ''),
+        'prices'        => [
+            1 => 20.00,  2 => 40.00,  3 => 60.00,  4 => 80.00,
+            5 => 99.99,  6 => 119.99, 7 => 139.99, 8 => 159.99,
+            9 => 179.99, 10 => 199.98,
+        ],
     ],
 
     // Robi MIFE SMS API (for sending ticket SMS after successful payment)
