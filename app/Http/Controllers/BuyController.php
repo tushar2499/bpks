@@ -55,71 +55,97 @@ class BuyController extends Controller
             ->exists();
 
         if ($recentTxn) {
-            return back()->withErrors(['phone' => 'আপনার একটি লেনদেন চলছে। ২ মিনিট পর চেষ্টা করুন।'])->withInput();
+            if ($operator === 'Banglalink') {
+                $pendingTxn = Transaction::where('phone', $phone)
+                    ->where('operator', 'Banglalink')
+                    ->where('status', 'pending')
+                    ->where('created_at', '>=', now()->subMinutes(15))
+                    ->latest()
+                    ->first();
+
+                $otpUrl  = $pendingTxn ? route('blink.otp', $pendingTxn->txn_ref) : null;
+                $waitMsg = $otpUrl
+                    ? 'আপনার একটি লেনদেন চলছে। <a href="' . $otpUrl . '">OTP পেজে ফিরুন</a> অথবা ১৫ মিনিট পর চেষ্টা করুন।'
+                    : 'আপনার একটি লেনদেন চলছে। ১৫ মিনিট পর চেষ্টা করুন।';
+            } else {
+                $waitMsg = 'আপনার একটি লেনদেন চলছে। ২ মিনিট পর চেষ্টা করুন।';
+            }
+            return back()->withErrors(['phone' => $waitMsg])->withInput();
         }
 
-        // Atomic: lock qty unsold tickets for this operator
-        $result = DB::transaction(function () use ($phone, $operator, $qty) {
+        // Atomic: allocate qty unsold tickets using SKIP LOCKED — never waits on other transactions
+        try {
+            $result = DB::transaction(function () use ($phone, $operator, $qty) {
 
-            // Find active tier per series (lowest tier still having unsold tickets)
-            $activeTiers = DB::table('tickets')
-                ->where('operator', $operator)
-                ->where('status', 0)
-                ->whereNotNull('series')
-                ->select('series', DB::raw('MIN(sale_tier) as active_tier'))
-                ->groupBy('series')
-                ->pluck('active_tier', 'series');
+                // Find active tier per series (lowest tier still having unsold tickets)
+                $activeTiers = DB::table('tickets')
+                    ->where('operator', $operator)
+                    ->where('status', 0)
+                    ->whereNotNull('series')
+                    ->select('series', DB::raw('MIN(sale_tier) as active_tier'))
+                    ->groupBy('series')
+                    ->pluck('active_tier', 'series');
 
-            // Phase 1: randomly pick candidate IDs (no lock — avoids full-scan deadlock)
-            $tierFilter = function ($q) use ($activeTiers) {
+                // Build tier WHERE clause for raw SKIP LOCKED query
+                $tierParts = [];
+                $bindings  = [$operator];
+
                 foreach ($activeTiers as $series => $tier) {
-                    $q->orWhere(fn($q2) => $q2->where('series', $series)->where('sale_tier', $tier));
+                    $tierParts[] = '(series = ? AND sale_tier = ?)';
+                    $bindings[]  = $series;
+                    $bindings[]  = (int) $tier;
                 }
-                $q->orWhereNull('series');
-            };
+                $tierParts[] = 'series IS NULL';
+                $bindings[]  = $qty;
 
-            $candidateIds = Ticket::where('status', 0)
-                ->where('operator', $operator)
-                ->where($tierFilter)
-                ->inRandomOrder()
-                ->limit($qty)
-                ->pluck('id');
+                $tierSql = implode(' OR ', $tierParts);
 
-            // Phase 2: lock those specific IDs in ascending order (consistent lock order → no deadlock)
-            $tickets = Ticket::whereIn('id', $candidateIds)
-                ->where('status', 0)
-                ->orderBy('id')
-                ->lockForUpdate()
-                ->get();
+                // SKIP LOCKED: concurrent transactions skip each other's locked rows instantly
+                // — eliminates lock wait timeouts and deadlocks under high traffic
+                $rows = DB::select(
+                    "SELECT * FROM tickets
+                     WHERE status = 0
+                       AND operator = ?
+                       AND ({$tierSql})
+                     ORDER BY id
+                     LIMIT ?
+                     FOR UPDATE SKIP LOCKED",
+                    $bindings
+                );
 
-            if ($tickets->count() < $qty) {
-                $found = $tickets->count();
-                return ['error' => $found === 0
-                    ? "দুঃখিত! {$operator} এর জন্য কোনো টিকেট পাওয়া যায়নি।"
-                    : "দুঃখিত! মাত্র {$found}টি টিকেট পাওয়া যাচ্ছে।"];
-            }
+                $tickets = collect($rows);
 
-            $txnRef      = 'BPKS' . strtoupper(Str::random(13)); // no hyphen — Robi accepts alphanumeric only
-            $totalAmount = $tickets->sum('sell_price');
+                if ($tickets->count() < $qty) {
+                    $found = $tickets->count();
+                    return ['error' => $found === 0
+                        ? "দুঃখিত! {$operator} এর জন্য কোনো টিকেট পাওয়া যায়নি।"
+                        : "দুঃখিত! মাত্র {$found}টি টিকেট পাওয়া যাচ্ছে।"];
+                }
 
-            $ticketIds = $tickets->pluck('id')->all();
+                $txnRef      = 'BPKS' . strtoupper(Str::random(13)); // no hyphen — Robi accepts alphanumeric only
+                $totalAmount = $tickets->sum('sell_price');
+                $ticketIds   = $tickets->pluck('id')->all();
 
-            $transaction = Transaction::create([
-                'txn_ref'    => $txnRef,
-                'ticket_id'  => $tickets->first()->id,
-                'ticket_ids' => $ticketIds,
-                'phone'      => $phone,
-                'operator'   => $operator,
-                'amount'     => $totalAmount,
-                'qty'        => $qty,
-                'status'     => 'pending',
-            ]);
+                $transaction = Transaction::create([
+                    'txn_ref'    => $txnRef,
+                    'ticket_id'  => $tickets->first()->id,
+                    'ticket_ids' => $ticketIds,
+                    'phone'      => $phone,
+                    'operator'   => $operator,
+                    'amount'     => $totalAmount,
+                    'qty'        => $qty,
+                    'status'     => 'pending',
+                ]);
 
-            // Reserve all tickets
-            Ticket::whereIn('id', $ticketIds)->update(['status' => 2]);
+                // Reserve all tickets
+                Ticket::whereIn('id', $ticketIds)->update(['status' => 2]);
 
-            return ['transaction' => $transaction, 'tickets' => $tickets];
-        }, 5); // retry up to 5x on deadlock (SQLSTATE 40001) instead of 500ing the buyer
+                return ['transaction' => $transaction, 'tickets' => $tickets];
+            }, 3);
+        } catch (\Throwable $e) {
+            Log::error('Ticket allocation failed', ['operator' => $operator, 'phone' => $phone, 'err' => $e->getMessage()]);
+            return back()->withErrors(['phone' => 'সিস্টেম ব্যস্ত আছে। কয়েক সেকেন্ড পর আবার চেষ্টা করুন।'])->withInput();
+        }
 
         if (isset($result['error'])) {
             return back()->withErrors(['phone' => $result['error']])->withInput();
