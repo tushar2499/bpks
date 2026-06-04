@@ -81,57 +81,47 @@ class BuyController extends Controller
                     ->groupBy('series')
                     ->pluck('active_tier', 'series');
 
-                // Phase 1: build a candidate id pool WITHOUT ORDER BY RAND().
-                // inRandomOrder() would filesort the entire (~280k-row) unsold set on
-                // the single write node on every purchase -> CPU saturation under sale
-                // traffic (the cause of the 2026-06-02 LB-down). Instead: pick a random
-                // active series, then a random id-pivot within it and scan forward along
-                // the PK index (covering range scan, no filesort). Loop across the
-                // remaining series so allocation never starves as inventory drains.
-                $oversample   = $qty * 3; // headroom so SKIP LOCKED still returns enough
-                $candidateIds = collect();
+                // Phase 1: 2-query cross-series random candidate pool.
+                // Query 1: get min/max id for every active (series, tier) in one GROUP BY —
+                // no per-series round-trips. Query 2: UNION ALL forward pivot scans, one
+                // subquery per series, all resolved in a single DB call. shuffle()+take()
+                // then picks a random cross-series subset for Phase 2 without ORDER BY RAND().
 
-                foreach ($activeTiers->keys()->shuffle() as $series) {
-                    $tier   = $activeTiers[$series];
-                    $bounds = DB::table('tickets')
-                        ->where('operator', $operator)->where('series', $series)
-                        ->where('sale_tier', $tier)->where('status', 0)
-                        ->selectRaw('MIN(id) as mn, MAX(id) as mx')->first();
+                // Q1 — bounds for all active series at once
+                $allBounds = DB::table('tickets')
+                    ->where('operator', $operator)
+                    ->where('status', 0)
+                    ->whereNotNull('series')
+                    ->selectRaw('series, sale_tier, MIN(id) as mn, MAX(id) as mx')
+                    ->groupBy('series', 'sale_tier')
+                    ->get()
+                    ->keyBy('series');
 
-                    if (!$bounds || $bounds->mn === null) {
-                        continue;
-                    }
-
-                    $pivot = random_int((int) $bounds->mn, (int) $bounds->mx);
-
-                    $base = fn() => Ticket::where('operator', $operator)
-                        ->where('series', $series)->where('sale_tier', $tier)
-                        ->where('status', 0);
-
-                    // forward from a random pivot, then wrap to the series start if short
-                    $ids = $base()->where('id', '>=', $pivot)
-                        ->orderBy('id')->limit($oversample)->pluck('id');
-                    if ($ids->count() < $oversample) {
-                        $ids = $ids->merge(
-                            $base()->where('id', '<', $pivot)
-                                ->orderBy('id')->limit($oversample)->pluck('id')
-                        );
-                    }
-
-                    $candidateIds = $candidateIds->merge($ids);
-                    if ($candidateIds->count() >= $oversample) {
-                        break;
-                    }
+                // Q2 — UNION ALL: $qty candidates per series via random pivot
+                $unions   = [];
+                $bindings = [];
+                foreach ($activeTiers as $series => $tier) {
+                    $b = $allBounds->get($series);
+                    if (!$b || $b->mn === null) continue;
+                    $pivot = random_int((int) $b->mn, (int) $b->mx);
+                    $unions[]  = "(SELECT id FROM tickets WHERE operator=? AND series=? AND sale_tier=? AND status=0 AND id>=? ORDER BY id LIMIT ?)";
+                    array_push($bindings, $operator, $series, $tier, $pivot, $qty);
                 }
+
+                $candidateIds = $unions
+                    ? collect(DB::select(implode(' UNION ALL ', $unions), $bindings))->pluck('id')
+                    : collect();
 
                 // Safety net for any unbackfilled (series IS NULL) rows
                 if ($candidateIds->isEmpty()) {
                     $candidateIds = Ticket::where('status', 0)
                         ->where('operator', $operator)
-                        ->orderBy('id')->limit($oversample)->pluck('id');
+                        ->orderBy('id')->limit($qty * 3)->pluck('id');
                 }
 
-                $candidateIds = $candidateIds->unique()->sort()->values();
+                // Shuffle then take $qty*2: randomizes which cross-series tickets enter
+                // Phase 2; sort restores ascending order for consistent lock acquisition.
+                $candidateIds = $candidateIds->unique()->shuffle()->take($qty * 2)->sort()->values();
 
                 if ($candidateIds->isEmpty()) {
                     return ['error' => "{$operator} গ্রাহকদের জন্য টিকিট বিক্রয় শিগগিরই উন্মুক্ত করা হবে।"];
