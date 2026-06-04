@@ -193,7 +193,8 @@ class ReportController extends Controller
                 return back()->with('error', 'GP customer reference (ACR) not found — cannot send GP SMS.');
             }
 
-            $gpMessage = "আপনি সফল ভাবে BPKS লটারির টিকিট ক্রয় করেছেন। চার্জ ২০ টাকা।"
+            $gpCharge  = (int) $transaction->amount;
+            $gpMessage = "আপনি সফল ভাবে BPKS লটারির টিকিট ক্রয় করেছেন। চার্জ {$gpCharge} টাকা।"
                        . " টিকেট নাম্বার: '{$ticketNos}' ,"
                        . " ডাউনলোড টিকিট: {$downloadUrl}"
                        . " | হেল্পলাইন: +8801725298711 (চার্জ প্রযোজ্য)";
