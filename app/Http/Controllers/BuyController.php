@@ -95,13 +95,13 @@ class BuyController extends Controller
                     ->selectRaw('series, sale_tier, MIN(id) as mn, MAX(id) as mx')
                     ->groupBy('series', 'sale_tier')
                     ->get()
-                    ->keyBy('series');
+                    ->keyBy(fn($r) => $r->series . '|' . $r->sale_tier);
 
                 // Q2 — UNION ALL: $qty candidates per series via random pivot
                 $unions   = [];
                 $bindings = [];
                 foreach ($activeTiers as $series => $tier) {
-                    $b = $allBounds->get($series);
+                    $b = $allBounds->get($series . '|' . $tier);
                     if (!$b || $b->mn === null) continue;
                     $pivot = random_int((int) $b->mn, (int) $b->mx);
                     $unions[]  = "(SELECT id FROM tickets WHERE operator=? AND series=? AND sale_tier=? AND status=0 AND id>=? ORDER BY id LIMIT ?)";
