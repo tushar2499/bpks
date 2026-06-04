@@ -47,8 +47,13 @@ class TicketImageController extends Controller
         $red    = imagecolorallocate($img, 185, 28, 28);
         $shadow = imagecolorallocatealpha($img, 0, 0, 0, 60);
 
-        imagettftext($img, 28, 0, 577, 132, $shadow, $fontPath, $ticketNo);
-        imagettftext($img, 28, 0, 575, 130, $red,    $fontPath, $ticketNo);
+        $bbox  = imagettfbbox(28, 0, $fontPath, $ticketNo);
+        $textW = abs($bbox[2] - $bbox[0]);
+        $tx    = (int)(($imgW - $textW) / 2);
+        $ty    = (int) round(0.127 * $imgH); // ~12.7% from top (original proportion)
+
+        imagettftext($img, 28, 0, $tx + 2, $ty + 2, $shadow, $fontPath, $ticketNo);
+        imagettftext($img, 28, 0, $tx,     $ty,     $red,    $fontPath, $ticketNo);
 
         $this->stampSecurityBand($img, $imgW, $imgH, $txn->txn_ref, $txn->phone, 1.0);
 
@@ -154,8 +159,11 @@ class TicketImageController extends Controller
         $red    = imagecolorallocate($dst, 185, 28, 28);
         $shadow = imagecolorallocatealpha($dst, 0, 0, 0, 60);
         $fs     = (int) round(28 * $scale);
-        $tx     = (int) round(575 * $scale);
-        $ty     = (int) round(130 * $scale);
+        $ty     = (int) round(0.127 * $dstH); // ~12.7% from top (original proportion)
+
+        $bbox  = imagettfbbox($fs, 0, $fontPath, $ticketNo);
+        $textW = abs($bbox[2] - $bbox[0]);
+        $tx    = (int)(($dstW - $textW) / 2);
 
         imagettftext($dst, $fs, 0, $tx + 2, $ty + 2, $shadow, $fontPath, $ticketNo);
         imagettftext($dst, $fs, 0, $tx,     $ty,     $red,    $fontPath, $ticketNo);
