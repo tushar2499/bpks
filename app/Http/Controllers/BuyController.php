@@ -72,40 +72,42 @@ class BuyController extends Controller
         try {
             $result = DB::transaction(function () use ($phone, $operator, $qty) {
 
-                // Find active tier per series (lowest tier still having unsold tickets)
-                $activeTiers = DB::table('tickets')
+                // Global active tier: lowest tier with unsold tickets across ALL series.
+                // All series must exhaust tier N before any series picks from tier N+1.
+                $globalActiveTier = DB::table('tickets')
                     ->where('operator', $operator)
                     ->where('status', 0)
                     ->whereNotNull('series')
-                    ->select('series', DB::raw('MIN(sale_tier) as active_tier'))
-                    ->groupBy('series')
-                    ->pluck('active_tier', 'series');
+                    ->min('sale_tier');
+
+                if ($globalActiveTier === null) {
+                    return ['error' => "{$operator} গ্রাহকদের জন্য টিকিট বিক্রয় শিগগিরই উন্মুক্ত করা হবে।"];
+                }
 
                 // Phase 1: 2-query cross-series random candidate pool.
-                // Query 1: get min/max id for every active (series, tier) in one GROUP BY —
-                // no per-series round-trips. Query 2: UNION ALL forward pivot scans, one
-                // subquery per series, all resolved in a single DB call. shuffle()+take()
-                // then picks a random cross-series subset for Phase 2 without ORDER BY RAND().
+                // Query 1: get min/max id for every series at the global active tier.
+                // Query 2: UNION ALL forward pivot scans, one subquery per series.
+                // shuffle()+take() picks a random cross-series subset for Phase 2.
 
-                // Q1 — bounds for all active series at once
+                // Q1 — bounds for all series at the global active tier
                 $allBounds = DB::table('tickets')
                     ->where('operator', $operator)
                     ->where('status', 0)
                     ->whereNotNull('series')
-                    ->selectRaw('series, sale_tier, MIN(id) as mn, MAX(id) as mx')
-                    ->groupBy('series', 'sale_tier')
+                    ->where('sale_tier', $globalActiveTier)
+                    ->selectRaw('series, MIN(id) as mn, MAX(id) as mx')
+                    ->groupBy('series')
                     ->get()
-                    ->keyBy(fn($r) => $r->series . '|' . $r->sale_tier);
+                    ->keyBy('series');
 
                 // Q2 — UNION ALL: $qty candidates per series via random pivot
                 $unions   = [];
                 $bindings = [];
-                foreach ($activeTiers as $series => $tier) {
-                    $b = $allBounds->get($series . '|' . $tier);
+                foreach ($allBounds as $series => $b) {
                     if (!$b || $b->mn === null) continue;
                     $pivot = random_int((int) $b->mn, (int) $b->mx);
                     $unions[]  = "(SELECT id FROM tickets WHERE operator=? AND series=? AND sale_tier=? AND status=0 AND id>=? ORDER BY id LIMIT ?)";
-                    array_push($bindings, $operator, $series, $tier, $pivot, $qty);
+                    array_push($bindings, $operator, $series, $globalActiveTier, $pivot, $qty);
                 }
 
                 $candidateIds = $unions
