@@ -166,7 +166,7 @@ class TicketImageController extends Controller
         imagettftext($dst, $fs, 0, $tx + 2, $ty + 2, $shadow, $fontPath, $ticketNo);
         imagettftext($dst, $fs, 0, $tx,     $ty,     $red,    $fontPath, $ticketNo);
 
-        $this->stampSecurityBand($dst, $dstW, $dstH, $txnRef, $phone, $scale);
+        $this->stampSecurityBand($dst, $dstW, $dstH, $txnRef, $phone, $rs);
 
         ob_start();
         imagejpeg($dst, null, 72);
