@@ -202,7 +202,7 @@ class ReportController extends Controller
             $sent = (new GpConsentService())->sendSms($acr, $transaction->phone, $gpMessage, $transaction->txn_ref);
         } elseif ($transaction->operator === 'Banglalink') {
             $amount  = number_format($transaction->amount, 2);
-            $message = "প্রিয় গ্রাহক, আপনার BPKS লটারি টিকেট কেনা সফল হয়েছে। টিকেট নম্বর: {$ticketNos}. মূল্য: ৳{$amount} (ট্যাক্স সহ), লেনদেন: {$transaction->txn_ref}. টিকেট ডাউনলোড: {$downloadUrl} হেল্পলাইনঃ 8801920-934747 (9:30 AM - 5:30 PM)";
+            $message = "আপনি সফল ভাবে BPKS ({$ticketNos}) ক্রয় করেছেন। মূল্য: ৳{$amount} (ট্যাক্সসহ) | ট্রানজেকশন: {$transaction->txn_ref} | ডাউনলোড: {$downloadUrl} । হেল্পলাইন: 8801920-934747 (9:30 AM-5:30 PM)";
 
             $sent = (new BlinkService())->sendSms($transaction->phone, $message, $transaction->txn_ref);
         } else {
