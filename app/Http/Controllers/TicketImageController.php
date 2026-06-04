@@ -47,13 +47,13 @@ class TicketImageController extends Controller
         $red    = imagecolorallocate($img, 185, 28, 28);
         $shadow = imagecolorallocatealpha($img, 0, 0, 0, 60);
 
-        $bbox  = imagettfbbox(28, 0, $fontPath, $ticketNo);
-        $textW = abs($bbox[2] - $bbox[0]);
-        $tx    = (int)(($imgW - $textW) / 2);
-        $ty    = (int) round(0.127 * $imgH); // ~12.7% from top (original proportion)
+        $rs = $imgW / 1052.0;
+        $fs = (int) round(28 * $rs);
+        $tx = (int) round(575 * $rs);
+        $ty = (int) round(130 * $rs);
 
-        imagettftext($img, 28, 0, $tx + 2, $ty + 2, $shadow, $fontPath, $ticketNo);
-        imagettftext($img, 28, 0, $tx,     $ty,     $red,    $fontPath, $ticketNo);
+        imagettftext($img, $fs, 0, $tx + 2, $ty + 2, $shadow, $fontPath, $ticketNo);
+        imagettftext($img, $fs, 0, $tx,     $ty,     $red,    $fontPath, $ticketNo);
 
         $this->stampSecurityBand($img, $imgW, $imgH, $txn->txn_ref, $txn->phone, 1.0);
 
@@ -155,15 +155,13 @@ class TicketImageController extends Controller
         imagecopyresampled($dst, $src, 0, 0, 0, 0, $dstW, $dstH, $srcW, $srcH);
         imagedestroy($src);
 
-        $scale  = $dstW / $srcW;
         $red    = imagecolorallocate($dst, 185, 28, 28);
         $shadow = imagecolorallocatealpha($dst, 0, 0, 0, 60);
-        $fs     = (int) round(28 * $scale);
-        $ty     = (int) round(0.127 * $dstH); // ~12.7% from top (original proportion)
 
-        $bbox  = imagettfbbox($fs, 0, $fontPath, $ticketNo);
-        $textW = abs($bbox[2] - $bbox[0]);
-        $tx    = (int)(($dstW - $textW) / 2);
+        $rs = $dstW / 1052.0;
+        $fs = (int) round(28 * $rs);
+        $tx = (int) round(575 * $rs);
+        $ty = (int) round(130 * $rs);
 
         imagettftext($dst, $fs, 0, $tx + 2, $ty + 2, $shadow, $fontPath, $ticketNo);
         imagettftext($dst, $fs, 0, $tx,     $ty,     $red,    $fontPath, $ticketNo);
