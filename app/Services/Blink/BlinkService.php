@@ -88,7 +88,7 @@ class BlinkService
             );
 
             $raw     = trim($response->body());
-            $success = $raw === '0';
+            $success = strtolower($raw) === 'sent';
 
             Log::info('Blink sendSms', ['msisdn' => $msisdn, 'response' => $raw]);
 
