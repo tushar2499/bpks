@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Ticket;
 use App\Models\Transaction;
 use App\Models\User;
+use App\Services\Blink\BlinkService;
 use App\Services\DCB\GpConsentService;
 use App\Services\SMS\RobiSmsService;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -198,6 +199,11 @@ class ReportController extends Controller
                        . " | হেল্পলাইন: +8801725298711 (চার্জ প্রযোজ্য)";
 
             $sent = (new GpConsentService())->sendSms($acr, $transaction->phone, $gpMessage, $transaction->txn_ref);
+        } elseif ($transaction->operator === 'Banglalink') {
+            $amount  = number_format($transaction->amount, 2);
+            $message = "প্রিয় গ্রাহক, আপনার BPKS লটারি টিকেট কেনা সফল হয়েছে। টিকেট নম্বর: {$ticketNos}. মূল্য: ৳{$amount} (ট্যাক্স সহ), লেনদেন: {$transaction->txn_ref}. টিকেট ডাউনলোড: {$downloadUrl} হেল্পলাইনঃ 8801920-934747 (9:30 AM - 5:30 PM)";
+
+            $sent = (new BlinkService())->sendSms($transaction->phone, $message, $transaction->txn_ref);
         } else {
             $message = "প্রিয় গ্রাহক, আপনার BPKS লটারি টিকেট কেনা সফল হয়েছে।\n"
                      . "টিকেট নম্বর: {$ticketNos}\n"

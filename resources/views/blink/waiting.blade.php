@@ -35,6 +35,8 @@
     .info-box { background: var(--blue-lite); border: 1px solid var(--blue-bdr); border-radius: .7rem; padding: .7rem .9rem; font-size: .82rem; color: var(--blue); }
     .error-box { background: #fef2f2; border: 1px solid #fecaca; border-radius: .7rem; padding: .7rem .9rem; font-size: .85rem; color: #dc2626; display: none; }
     .success-box { background: #f0fdf4; border: 1px solid #a7f3d0; border-radius: .7rem; padding: .7rem .9rem; font-size: .85rem; color: #065f46; display: none; }
+    .low-balance-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: .7rem; padding: .9rem; font-size: .88rem; color: #92400e; display: none; }
+    .home-btn { display: inline-block; margin-top: .75rem; background: linear-gradient(135deg,var(--blue),var(--blue-mid)); color:#fff; font-weight:700; font-size:.9rem; border-radius:.6rem; padding:.55rem 1.4rem; text-decoration:none; }
   </style>
 </head>
 <body>
@@ -79,6 +81,14 @@
 
       <div class="error-box mb-3" id="errorBox">
         <i class="fas fa-times-circle me-1"></i><span id="errorMsg">পেমেন্ট ব্যর্থ হয়েছে।</span>
+        <br><a href="{{ route('buy.index') }}" class="home-btn mt-2"><i class="fas fa-home me-1"></i>হোমে ফিরুন</a>
+      </div>
+
+      <div class="low-balance-box mb-3" id="lowBalanceBox">
+        <i class="fas fa-exclamation-triangle me-1"></i>
+        <strong>পেমেন্ট ব্যর্থ।</strong><br>
+        <span id="blinkStatusMsg" style="font-size:.85rem;"></span>
+        <br><a href="{{ route('buy.index') }}" class="home-btn"><i class="fas fa-home me-1"></i>হোমে ফিরুন</a>
       </div>
 
     </div>
@@ -91,11 +101,13 @@
   const statusUrl = @json(route('blink.status', $transaction->txn_ref));
   const buyUrl    = @json(route('buy.index'));
 
-  const pendingBlock = document.getElementById('pendingBlock');
-  const successBox   = document.getElementById('successBox');
-  const errorBox     = document.getElementById('errorBox');
-  const errorMsg     = document.getElementById('errorMsg');
-  const timeoutMsg   = document.getElementById('timeoutMsg');
+  const pendingBlock   = document.getElementById('pendingBlock');
+  const successBox     = document.getElementById('successBox');
+  const errorBox       = document.getElementById('errorBox');
+  const errorMsg       = document.getElementById('errorMsg');
+  const lowBalanceBox  = document.getElementById('lowBalanceBox');
+  const blinkStatusMsg = document.getElementById('blinkStatusMsg');
+  const timeoutMsg     = document.getElementById('timeoutMsg');
 
   const POLL_INTERVAL = 3000;   // 3 seconds
   const TIMEOUT_MS    = 15 * 60 * 1000; // 15 minutes
@@ -105,7 +117,7 @@
 
   function showError(msg) {
     pendingBlock.style.display = 'none';
-    errorBox.style.display = '';
+    errorBox.style.display = 'block';
     errorMsg.textContent = msg || 'পেমেন্ট ব্যর্থ হয়েছে।';
   }
 
@@ -125,7 +137,7 @@
         if (data.status === 'success') {
           clearInterval(pollTimer);
           pendingBlock.style.display = 'none';
-          successBox.style.display = '';
+          successBox.style.display = 'block';
           setTimeout(() => { window.location.href = data.redirect; }, 1500);
         } else if (data.status === 'failed') {
           clearInterval(pollTimer);
@@ -133,6 +145,11 @@
         } else if (data.status === 'expired') {
           clearInterval(pollTimer);
           showError('সময়সীমা পার হয়ে গেছে। পেমেন্ট নিশ্চিত হয়নি।');
+        } else if (data.status === 'low_balance') {
+          clearInterval(pollTimer);
+          pendingBlock.style.display = 'none';
+          blinkStatusMsg.textContent = data.blink_status || '';
+          lowBalanceBox.style.display = 'block';
         }
         // 'pending' → keep polling
       })

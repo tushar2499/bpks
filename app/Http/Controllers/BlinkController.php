@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BlinkNotifyLog;
 use App\Models\ConsentLog;
 use App\Models\Transaction;
 use App\Services\Blink\BlinkService;
@@ -99,6 +100,18 @@ class BlinkController extends Controller
         // Expire after 15 minutes of OTP request
         if ($transaction->blink_otp_requested_at && $transaction->blink_otp_requested_at->lt(now()->subMinutes(15))) {
             return response()->json(['status' => 'expired']);
+        }
+
+        // Check for a non-success notify — low balance or other charge failure
+        $failedNotify = BlinkNotifyLog::where('txn_ref', $txnRef)
+            ->whereRaw('LOWER(status) NOT IN (?, ?)', ['succss', 'success'])
+            ->first();
+
+        if ($failedNotify) {
+            return response()->json([
+                'status'       => 'low_balance',
+                'blink_status' => $failedNotify->status,
+            ]);
         }
 
         return response()->json(['status' => 'pending']);

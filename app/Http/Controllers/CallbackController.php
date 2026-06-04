@@ -494,11 +494,19 @@ class CallbackController extends Controller
         $ticketNos   = $tickets->pluck('ticket_no')->implode(', ');
         $amount      = number_format($transaction->amount, 2);
         $downloadUrl = route('ticket.download-all-pdf', ['phone' => $transaction->phone]);
-        $message     = "প্রিয় গ্রাহক, আপনার BPKS লটারি টিকেট কেনা সফল হয়েছে। টিকেট নম্বর: {$ticketNos}. মূল্য: ৳{$amount}, লেনদেন: {$transaction->txn_ref}. টিকেট ডাউনলোড: {$downloadUrl}";
+        $message     = "প্রিয় গ্রাহক, আপনার BPKS লটারি টিকেট কেনা সফল হয়েছে। টিকেট নম্বর: {$ticketNos}. মূল্য: ৳{$amount} (ট্যাক্স সহ), লেনদেন: {$transaction->txn_ref}. টিকেট ডাউনলোড: {$downloadUrl} . হেল্পলাইনঃ 8801920-934747 (9:30 AM - 5:30 PM)";
 
-        $sent = (new BlinkService())->sendSms($transaction->phone, $message, $transaction->txn_ref);
-        $step = $sent ? 'sms_sent' : 'sms_failed';
-        ConsentLog::record($transaction->txn_ref, $transaction->phone, $step, ['ticket_nos' => $ticketNos]);
+        try {
+            $sent = (new BlinkService())->sendSms($transaction->phone, $message, $transaction->txn_ref);
+            $step = $sent ? 'sms_sent' : 'sms_failed';
+            $note = $sent ? null : 'BlinkService returned false';
+        } catch (\Throwable $e) {
+            Log::error('Blink ticket SMS error', ['txn' => $transaction->txn_ref, 'err' => $e->getMessage()]);
+            $step = 'sms_failed';
+            $note = $e->getMessage();
+        }
+
+        ConsentLog::record($transaction->txn_ref, $transaction->phone, $step, ['ticket_nos' => $ticketNos], $note);
     }
 
     private function normalizeMsisdn(string $raw): ?string

@@ -55,7 +55,7 @@
   <div class="otp-card">
     <div class="otp-card-header">
       <div style="font-size:2.5rem;margin-bottom:.3rem;">📱</div>
-      <div class="fw-bold" style="font-size:1.1rem;">OTP যাচাই করুন</div>
+      <div class="fw-bold" style="font-size:1.1rem;">OTP সাবমিট করুন</div>
       <div style="font-size:.82rem;opacity:.85;margin-top:.3rem;">
         <strong>{{ $maskedPhone }}</strong> নম্বরে একটি ৫ সংখ্যার কোড পাঠানো হয়েছে
       </div>
@@ -94,7 +94,7 @@
         </div>
 
         <button type="submit" class="submit-btn mb-3" id="submitBtn">
-          <i class="fas fa-check me-2"></i>যাচাই করুন
+          <i class="fas fa-check me-2"></i>সাবমিট করুন
         </button>
       </form>
 
@@ -129,12 +129,6 @@
   otpInput.addEventListener('input', function () {
     this.value = this.value.replace(/\D/g, '').slice(0, 5);
     submitBtn.disabled = this.value.length < 5;
-    // Auto-submit when 5 digits filled (catches SMS autofill on mobile)
-    if (this.value.length === 5) {
-      submitBtn.disabled = true;
-      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>যাচাই হচ্ছে...';
-      otpForm.submit();
-    }
   });
 
   otpForm.addEventListener('submit', function () {

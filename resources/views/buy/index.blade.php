@@ -287,7 +287,7 @@
               <i class="fas fa-ticket-alt me-1"></i> টিকেট কিনুন
             </div>
             <div class="price-tag" style="font-size:1.5rem;">২০ টাকা <span style="font-size:.9rem;font-weight:500;opacity:.85;">(ট্যাক্স সহ)</span></div>
-            <div class="mt-1" style="font-size:.78rem;opacity:.8;">মোবাইল ব্যালেন্স থেকে কাটা হবে</div>
+            <div class="mt-1" style="font-size:.78rem;opacity:.8;">মোবাইল ব্যালেন্স থেকে চার্জ হবে</div>
           </div>
           <div class="buy-card-body">
             @if($errors->any())
@@ -327,7 +327,7 @@
                 <i class="fas fa-shopping-cart me-2"></i>এখনই কিনুন
               </button>
               <button type="button" class="buy-btn d-lg-none" id="buyBtnMobile">
-                <i class="fas fa-shopping-cart me-2"></i>এখনই কিনুন — ২০ টাকা
+                <i class="fas fa-shopping-cart me-2"></i>এখনই কিনুন
               </button>
             </form>
           </div>
@@ -420,7 +420,7 @@
         <div class="info-card px-3 py-1">
           <div class="terms-item"><i class="fas fa-check-circle"></i><span>অনুমোদিত ব্যাংক, প্রতিষ্ঠান ও পোর্টাল ব্যতীত অন্য কোনো মাধ্যম হতে টিকেট ক্রয় করলে ঐ টিকেটের জন্য বাংলাদেশ প্রতিবন্ধী কল্যাণ সমিতি ও সংশ্লিষ্ট কর্তৃপক্ষ দায়ী থাকবে না।</span></div>
           <div class="terms-item"><i class="fas fa-check-circle"></i><span>ক্রয়কৃত লটারীর টিকেট নম্বর ও কনফার্মেশন কেবলমাত্র SMS এর মাধ্যমে পাঠানো হবে।</span></div>
-          <div class="terms-item"><i class="fas fa-check-circle"></i><span>SMS না পেলে আপনার মোবাইলের SMS এপ এর SPAM সেকশনে যাচাই করুন। অন্যথায় WhatsApp-এ (+8801708400182, +8801701677479, +8801942295196, +8801853297958) অথবা cservice@b2m-tech.com এ যোগাযোগ করুন। রবিবার থেকে বৃহস্পতিবার (সকাল ৯:৩০ টা থেকে বিকাল ৫:৩০ টা)</span></div>
+          <div class="terms-item"><i class="fas fa-check-circle"></i><span>SMS না পেলে আপনার মোবাইলের SMS এপ এর SPAM সেকশনে যাচাই করুন। অন্যথায় WhatsApp-এ (+8801708400182, +8801701677479, +8801920934747, +8801853297958) অথবা cservice@b2m-tech.com এ যোগাযোগ করুন। রবিবার থেকে বৃহস্পতিবার (সকাল ৯:৩০ টা থেকে বিকাল ৫:৩০ টা)</span></div>
           <div class="terms-item"><i class="fas fa-check-circle"></i><span>নির্ধারিত তারিখে বাংলাদেশ প্রতিবন্ধী কল্যাণ সমিতি কর্তৃপক্ষ ও বিশিষ্ট ব্যক্তিদের উপস্থিতিতে ঢাকায় ড্র অনুষ্ঠিত হবে।</span></div>
           <div class="terms-item"><i class="fas fa-check-circle"></i><span>লটারীর ড্র এর নির্ধারিত তারিখ ১৯ জুলাই ২০২৬; বিজয়ীদের তালিকা সংবাদপত্রের মাধ্যমে প্রকাশ করা হবে এবং বর্তমান ওয়েবসাইটেও (bpks.b2mwap.com) বিজয়ীদের তালিকা প্রকাশ হবে।</span></div>
           <div class="terms-item"><i class="fas fa-check-circle"></i><span>ফলাফল প্রকাশের ৩০ দিনের মধ্যে বিজয়ীদের পুরষ্কারের জন্য নাম ঠিকানা, সত্যায়িত ছবি ও টিকেট প্রাপ্তির এসএমএস সহ লিখিত দাবী কর্তৃপক্ষের নিকট দাখিল করতে হবে।</span></div>
@@ -523,13 +523,13 @@
     '015':'টেলিটক',
   };
 
-  const BL_PRICES = {1:20,2:40,3:60,4:80,5:99.99,6:119.99,7:139.99,8:159.99,9:179.99,10:199.98};
+  const BL_PRICES = {1:20,2:40,3:60,4:80,5:100,6:120,7:140,8:160,9:180,10:200};
 
   const WA_NUMBERS = {
     '013': [['8801708400182','+880 1708-400182'],['8801701677479','+880 1701-677479']],
     '017': [['8801708400182','+880 1708-400182'],['8801701677479','+880 1701-677479']],
-    '014': [['8801942295196','+880 1942-295196']],
-    '019': [['8801942295196','+880 1942-295196']],
+    '014': [['8801920934747','+880 1920-934747']],
+    '019': [['8801920934747','+880 1920-934747']],
     '016': [['8801853297958','+880 1853-297958']],
     '018': [['8801853297958','+880 1853-297958']],
   };
@@ -612,7 +612,7 @@
     const qtyLine  = qty > 1
       ? `<br><span style="font-size:.85rem;color:var(--muted);">${toBangla(qty)} টি টিকেট${bl ? ' (ট্যাক্স সহ)' : ' × ২০ টাকা'}</span>`
       : '';
-    confirmMsg.innerHTML = `<strong>${op}</strong> নম্বর<br><strong class="text-primary fs-5">${display}</strong>${qtyLine}<br>থেকে <strong class="text-danger">${total} টাকা</strong> কাটা হবে।`;
+    confirmMsg.innerHTML = `<strong>${op}</strong> নম্বর<br><strong class="text-primary fs-5">${display}</strong>${qtyLine}<br>থেকে <strong class="text-danger">${total} টাকা</strong> চার্জ হবে।`;
     confirmModal.show();
   }
 

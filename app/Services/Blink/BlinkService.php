@@ -70,23 +70,22 @@ class BlinkService
     {
         $msisdn = $this->toMsisdn($phone);
         $url    = self::BASE_URL . '/DOB/send_sms.php';
-
-        $smsLog = SmsLog::updateOrCreate(
-            ['txn_ref' => $txnRef],
-            [
-                'msisdn'  => $msisdn,
-                'message' => $message,
-                'url'     => $url,
-                'sent_at' => now(),
-            ]
-        );
+        $smsLog = null;
 
         try {
-            $response = Http::timeout(15)->get($url, [
-                'keyword' => self::KEYWORD,
-                'msisdn'  => $msisdn,
-                'msg'     => $message,
-            ]);
+            $smsLog = SmsLog::updateOrCreate(
+                ['txn_ref' => $txnRef],
+                [
+                    'msisdn'  => $msisdn,
+                    'message' => $message,
+                    'url'     => $url,
+                    'sent_at' => now(),
+                ]
+            );
+
+            $response = Http::timeout(15)->get(
+                $url . '?keyword=' . self::KEYWORD . '&msisdn=' . $msisdn . '&msg=' . urlencode($message)
+            );
 
             $raw     = trim($response->body());
             $success = $raw === '0';
@@ -103,10 +102,12 @@ class BlinkService
         } catch (\Throwable $e) {
             Log::error('Blink sendSms failed', ['msisdn' => $msisdn, 'error' => $e->getMessage()]);
 
-            $smsLog->update([
-                'response'       => $e->getMessage(),
-                'status_message' => 'Exception',
-            ]);
+            if ($smsLog) {
+                $smsLog->update([
+                    'response'       => $e->getMessage(),
+                    'status_message' => 'Exception',
+                ]);
+            }
 
             return false;
         }

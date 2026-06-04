@@ -156,6 +156,7 @@ class BuyController extends Controller
                         $tickets = Ticket::whereIn('id', $candidateIds)
                             ->where('status', 0)
                             ->orderBy('id')
+                            ->limit($qty)
                             ->lockForUpdate()
                             ->get();
                     } else {
