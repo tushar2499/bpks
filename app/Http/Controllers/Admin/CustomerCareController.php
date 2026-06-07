@@ -16,7 +16,12 @@ class CustomerCareController extends Controller
         $summary      = null;
 
         if ($request->filled('phone')) {
-            $phone = trim($request->phone);
+            $phone = preg_replace('/\D/', '', trim($request->phone));
+            if (str_starts_with($phone, '880') && strlen($phone) === 13) {
+                $phone = '0' . substr($phone, 3);
+            } elseif (str_starts_with($phone, '88') && strlen($phone) === 13) {
+                $phone = '0' . substr($phone, 2);
+            }
 
             $transactions = Transaction::with(['smsLog', 'consentLogs'])
                 ->where('phone', $phone)
