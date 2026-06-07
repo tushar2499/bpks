@@ -29,10 +29,10 @@
     <form method="GET" action="{{ route('admin.customer-care.index') }}">
       <label class="form-label fw-semibold">কাস্টমার মোবাইল নম্বর</label>
       <div class="d-flex gap-2 align-items-center">
-        <input type="text" name="phone" class="form-control form-control-lg"
+        <input type="text" id="phoneInput" name="phone" class="form-control form-control-lg"
                style="max-width:320px"
                placeholder="01XXXXXXXXX" value="{{ $phone ?? '' }}"
-               pattern="^(\+?880|0)?1[3-9]\d{8}$" required>
+               required>
         <button type="submit" class="btn btn-primary btn-lg px-4">
           <i class="fas fa-search me-2"></i>অনুসন্ধান
         </button>
@@ -252,5 +252,27 @@
     </div>
   </div>
 @endif
+
+@push('scripts')
+<script>
+function normalizePhone(raw) {
+    let d = raw.replace(/\D/g, '');
+    if (d.startsWith('880') && d.length === 13) d = '0' + d.slice(3);
+    else if (d.startsWith('88') && d.length === 13)  d = '0' + d.slice(2);
+    return d;
+}
+
+const phoneInput = document.getElementById('phoneInput');
+
+phoneInput.addEventListener('input', function () {
+    const normalized = normalizePhone(this.value);
+    if (normalized !== this.value) this.value = normalized;
+});
+
+phoneInput.closest('form').addEventListener('submit', function () {
+    phoneInput.value = normalizePhone(phoneInput.value);
+});
+</script>
+@endpush
 
 @endsection
