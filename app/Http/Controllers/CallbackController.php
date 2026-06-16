@@ -310,11 +310,15 @@ class CallbackController extends Controller
         }
         */
 
+        $failureReason = ($charge['message_id'] ?? null) === 'POL1000'
+            ? 'আপনার অ্যাকাউন্টে পর্যাপ্ত ব্যালেন্স নেই। রিচার্জ করে পুনরায় চেষ্টা করুন।'
+            : $charge['reason'];
+
         ConsentLog::record($txnRef, $transaction->phone, 'charge_failed',
             json_decode($charge['response'], true),
             $charge['reason']
         );
-        return $this->handleConsentFailure($transaction, $charge['reason']);
+        return $this->handleConsentFailure($transaction, $failureReason);
     }
 
     // ── GP recharge-and-buy callback ──────────────────────────────────────────
