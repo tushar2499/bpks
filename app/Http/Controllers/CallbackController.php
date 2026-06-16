@@ -283,6 +283,7 @@ class CallbackController extends Controller
         ]);
 
         // POL1000 = Insufficient credit → attempt recharge-and-buy
+        /* now I off the recharge option here
         if (($charge['message_id'] ?? null) === 'POL1000') {
             $rechargeRef  = 'RCHG' . strtoupper(\Illuminate\Support\Str::random(13));
             $rechargeUrls = [
@@ -307,6 +308,7 @@ class CallbackController extends Controller
 
             ConsentLog::record($txnRef, $transaction->phone, 'recharge_failed', null, $recharge['reason']);
         }
+        */
 
         ConsentLog::record($txnRef, $transaction->phone, 'charge_failed',
             json_decode($charge['response'], true),
