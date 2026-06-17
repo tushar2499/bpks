@@ -240,6 +240,61 @@
       </div>
     </div>
 
+    {{-- GP Recharge Log --}}
+    @php
+      $rechargeSteps = ['recharge_initiated', 'recharge_failed', 'recharge_callback_received', 'recharge_charge_failed'];
+      $rechargeTransactions = $transactions->filter(
+        fn($t) => $t->operator === 'Grameenphone' &&
+        $t->consentLogs->whereIn('step', $rechargeSteps)->isNotEmpty()
+      );
+    @endphp
+
+    @if($rechargeTransactions->isNotEmpty())
+    <div class="card search-card mt-4">
+      <div class="card-header bg-white border-bottom py-3 px-4">
+        <h6 class="fw-bold mb-0"><i class="fas fa-network-wired me-2 text-warning"></i>GP রিচার্জ লগ</h6>
+      </div>
+      <div class="card-body p-0">
+        @foreach($rechargeTransactions as $txn)
+        <div class="border-bottom p-4">
+          <div class="fw-semibold mb-3">
+            <code>{{ $txn->txn_ref }}</code>
+            <span class="badge bg-info text-dark ms-2">Grameenphone</span>
+            <span class="text-muted small ms-2">{{ \Carbon\Carbon::parse($txn->created_at)->format('d M Y, h:i A') }}</span>
+          </div>
+
+          {{-- Mirrors: Log::info('GP recharge prepare request', [...]) --}}
+          <div class="mb-3">
+            <div class="text-muted small fw-semibold mb-1 text-uppercase" style="letter-spacing:.05em">GP recharge prepare request</div>
+            <table class="table table-sm table-bordered mb-0" style="width:auto;font-size:.8rem">
+              <tr><th class="bg-light">original</th><td><code>{{ $txn->txn_ref }}</code></td></tr>
+              <tr><th class="bg-light">recharge</th><td><code>{{ $txn->gp_recharge_ref ?? '—' }}</code></td></tr>
+              <tr><th class="bg-light">acr</th><td><code>{{ $txn->gp_customer_ref ?? '—' }}</code></td></tr>
+            </table>
+          </div>
+
+          {{-- Mirrors: Log::info('GP recharge prepare response', [...]) + subsequent steps --}}
+          @foreach($txn->consentLogs->whereIn('step', $rechargeSteps)->sortBy('created_at') as $log)
+          <div class="mb-3">
+            <div class="d-flex align-items-center gap-2 mb-1">
+              <span class="badge bg-secondary">{{ $log->step }}</span>
+              <span class="text-muted small">{{ \Carbon\Carbon::parse($log->created_at)->format('h:i:s A') }}</span>
+              @if($log->note)
+                <span class="text-danger small">{{ $log->note }}</span>
+              @endif
+            </div>
+            @if($log->data)
+            <pre class="bg-light border rounded p-2 mb-0" style="font-size:.75rem;max-height:220px;overflow:auto">{{ json_encode($log->data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>
+            @endif
+          </div>
+          @endforeach
+
+        </div>
+        @endforeach
+      </div>
+    </div>
+    @endif
+
   @endif
 
 @else
