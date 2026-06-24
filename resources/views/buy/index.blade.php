@@ -263,7 +263,7 @@
         </div>
       </div>
       <div class="d-flex align-items-center gap-2 flex-shrink-0">
-        <span class="nav-badge nav-badge-green d-none d-sm-inline">
+        <span class="nav-badge nav-badge-green">
           <img src="{{ asset('govt-logo.png') }}" alt="সরকারি লোগো" style="height:20px;width:auto;vertical-align:middle" class="me-1">গণপ্রজাতন্ত্রী বাংলাদেশ সরকার কর্তৃক অনুমোদিত
         </span>
       </div>
