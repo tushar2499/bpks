@@ -46,8 +46,11 @@
       background: var(--blue-lite); color: var(--blue);
       border: 1px solid var(--blue-bdr);
       border-radius: 2rem; padding: .22rem .7rem;
-      font-size: .72rem; font-weight: 600; white-space: nowrap;
-      text-decoration: none;
+      font-size: .72rem; font-weight: 600; white-space: normal;
+      text-decoration: none; text-align: center; line-height: 1.4;
+    }
+    @media (max-width: 575px) {
+      .nav-badge { font-size: .62rem; padding: .18rem .5rem; max-width: 160px; }
     }
     .nav-badge-green {
       background: #f0fdf4; color: #065f46;
