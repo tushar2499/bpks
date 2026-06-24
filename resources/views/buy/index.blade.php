@@ -50,7 +50,8 @@
       text-decoration: none; text-align: center; line-height: 1.4;
     }
     @media (max-width: 575px) {
-      .nav-badge { font-size: .62rem; padding: .18rem .5rem; max-width: 160px; }
+      .nav-badge { font-size: .62rem; padding: .18rem .5rem; }
+      .navbar-top .d-flex.justify-content-between { flex-direction: column; align-items: center; gap: .5rem; }
     }
     .nav-badge-green {
       background: #f0fdf4; color: #065f46;
