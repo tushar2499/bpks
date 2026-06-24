@@ -40,7 +40,8 @@
       position: sticky; top: 0; z-index: 100;
     }
     .header-logo { height: 40px; }
-    .org-name { font-weight: 700; font-size: .88rem; color: var(--blue); line-height: 1.3; }
+    .org-name { font-weight: 700; font-size: .88rem; color: var(--blue); line-height: 1.3; white-space: nowrap; }
+    @media (max-width: 575px) { .org-name { font-size: .72rem; } }
     .org-name small { font-weight: 400; font-size: .7rem; color: var(--muted); display: block; }
     .nav-badge {
       background: var(--blue-lite); color: var(--blue);
