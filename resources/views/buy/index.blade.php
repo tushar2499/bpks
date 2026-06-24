@@ -54,7 +54,7 @@
       .nav-header { flex-direction: column; align-items: center; }
       .nav-header > div { text-align: center; }
       .header-logo { height: 36px; }
-      .org-name { font-size: .8rem; }
+      .org-name { font-size: .7rem; }
       .nav-badge { font-size: .6rem; padding: .15rem .45rem; }
     }
     .nav-badge-green {
@@ -445,10 +445,10 @@
 
       <!-- About -->
       <div class="mb-5 mb-lg-3">
-        <div class="sec-title"><i class="fas fa-heart me-2" style="color:#ef4444;"></i>আমাদের লক্ষ্য</div>
+        <div class="sec-title"><i class="fas fa-heart me-2" style="color:#ef4444;"></i>লটারির মূল উদ্দেশ্য</div>
         <div class="about-card">
           <p><i class="fas fa-wheelchair me-2" style="color:var(--blue-mid);"></i>
-          আপনার প্রতিটি টিকেটের অর্থ সরাসরি ব্যবহৃত হবে <strong>বাংলাদেশ প্রতিবন্ধী কল্যাণ সমিতি</strong>-এর প্রতিবন্ধী মানুষের উন্নয়নে।</p>
+          এই লটারি থেকে অর্জিত আয় ব্যয় করা হবে দেশের <strong>সুবিধাবঞ্চিত প্রতিবন্ধী ভাই-বোনদের চিকিৎসা, শিক্ষা, কর্মসংস্থান এবং পুনর্বাসনের</strong> জন্য। আপনার কেনা প্রতিটি টিকিট মূলত একটি মানবিক সাহায্য। </p>
           <p class="mb-0" style="font-size:.8rem;color:var(--muted);">
             <i class="fas fa-envelope me-1"></i> cservice@b2m-tech.com &nbsp;|&nbsp;
             <i class="fas fa-globe me-1"></i> bpks.b2mwap.com
