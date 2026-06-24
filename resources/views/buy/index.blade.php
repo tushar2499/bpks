@@ -258,15 +258,14 @@
       <div class="d-flex align-items-center gap-2">
         <img src="{{ asset('logo.svg') }}" class="header-logo" alt="BPKS">
         <div class="org-name">
-          বাংলাদেশ প্রতিবন্ধী কল্যাণ সমিতি (বিপিকেএস)
+          বাংলাদেশ প্রতিবন্ধী কল্যাণ সমিতি (BPKS), লটারি -২০২৬
           <small class="d-none d-sm-block">প্রতিবন্ধী ব্যাক্তিদের উন্নয়নে কর্মরত</small>
         </div>
       </div>
       <div class="d-flex align-items-center gap-2 flex-shrink-0">
         <span class="nav-badge nav-badge-green d-none d-sm-inline">
-          <i class="fas fa-certificate me-1"></i>সরকার অনুমোদিত
+          <img src="{{ asset('govt-logo.png') }}" alt="সরকারি লোগো" style="height:20px;width:auto;vertical-align:middle" class="me-1">গণপ্রজাতন্ত্রী বাংলাদেশ সরকার কর্তৃক অনুমোদিত
         </span>
-
       </div>
     </div>
   </div>
