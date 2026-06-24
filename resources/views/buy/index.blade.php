@@ -51,7 +51,9 @@
       text-decoration: none; text-align: center; line-height: 1.4;
     }
     @media (max-width: 575px) {
-      .header-logo { height: 32px; }
+      .nav-header { flex-direction: column; align-items: center; text-align: center; }
+      .header-logo { height: 36px; }
+      .org-name { font-size: .8rem; }
       .nav-badge { font-size: .6rem; padding: .15rem .45rem; }
     }
     .nav-badge-green {
@@ -259,12 +261,11 @@
 <!-- NAVBAR -->
 <nav class="navbar-top">
   <div class="container-lg">
-    <div class="d-flex align-items-center gap-2">
+    <div class="nav-header d-flex align-items-center gap-2">
       <img src="{{ asset('logo.svg') }}" class="header-logo" alt="BPKS">
       <div>
         <div class="org-name">
-          <span class="d-none d-sm-inline">বাংলাদেশ প্রতিবন্ধী কল্যাণ সমিতি (BPKS), লটারি -২০২৬</span>
-          <span class="d-sm-none">BPKS লটারি -২০২৬</span>
+          বাংলাদেশ প্রতিবন্ধী কল্যাণ সমিতি (BPKS), লটারি -২০২৬
           <small class="d-none d-sm-block">প্রতিবন্ধী ব্যাক্তিদের উন্নয়নে কর্মরত</small>
         </div>
         <span class="nav-badge nav-badge-green mt-1 d-inline-flex align-items-center">
