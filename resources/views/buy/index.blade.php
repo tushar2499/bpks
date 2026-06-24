@@ -40,8 +40,8 @@
       position: sticky; top: 0; z-index: 100;
     }
     .header-logo { height: 40px; }
-    .org-name { font-weight: 700; font-size: .88rem; color: var(--blue); line-height: 1.3; white-space: nowrap; }
-    @media (max-width: 575px) { .org-name { font-size: .72rem; } }
+    .org-name { font-weight: 700; font-size: .88rem; color: var(--blue); line-height: 1.3; }
+    @media (max-width: 575px) { .org-name { font-size: .78rem; } }
     .org-name small { font-weight: 400; font-size: .7rem; color: var(--muted); display: block; }
     .nav-badge {
       background: var(--blue-lite); color: var(--blue);
@@ -51,8 +51,8 @@
       text-decoration: none; text-align: center; line-height: 1.4;
     }
     @media (max-width: 575px) {
-      .nav-badge { font-size: .62rem; padding: .18rem .5rem; }
-      .navbar-top .d-flex.justify-content-between { flex-direction: column; align-items: center; gap: .5rem; }
+      .header-logo { height: 32px; }
+      .nav-badge { font-size: .6rem; padding: .15rem .45rem; }
     }
     .nav-badge-green {
       background: #f0fdf4; color: #065f46;
@@ -259,17 +259,15 @@
 <!-- NAVBAR -->
 <nav class="navbar-top">
   <div class="container-lg">
-    <div class="d-flex align-items-center justify-content-between gap-2">
-      <div class="d-flex align-items-center gap-2">
-        <img src="{{ asset('logo.svg') }}" class="header-logo" alt="BPKS">
+    <div class="d-flex align-items-center gap-2">
+      <img src="{{ asset('logo.svg') }}" class="header-logo" alt="BPKS">
+      <div>
         <div class="org-name">
           বাংলাদেশ প্রতিবন্ধী কল্যাণ সমিতি (BPKS), লটারি -২০২৬
           <small class="d-none d-sm-block">প্রতিবন্ধী ব্যাক্তিদের উন্নয়নে কর্মরত</small>
         </div>
-      </div>
-      <div class="d-flex align-items-center gap-2 flex-shrink-0">
-        <span class="nav-badge nav-badge-green">
-          <img src="{{ asset('govt-logo.png') }}" alt="সরকারি লোগো" style="height:20px;width:auto;vertical-align:middle" class="me-1">গণপ্রজাতন্ত্রী বাংলাদেশ সরকার কর্তৃক অনুমোদিত
+        <span class="nav-badge nav-badge-green mt-1 d-inline-flex align-items-center">
+          <img src="{{ asset('govt-logo.png') }}" alt="সরকারি লোগো" style="height:16px;width:auto" class="me-1">গণপ্রজাতন্ত্রী বাংলাদেশ সরকার কর্তৃক অনুমোদিত
         </span>
       </div>
     </div>
