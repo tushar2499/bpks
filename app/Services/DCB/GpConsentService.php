@@ -270,6 +270,48 @@ class GpConsentService
         }
     }
 
+    /**
+     * Query an existing transaction's charge status.
+     * Used after recharge-and-buy: GP auto-charges on recharge completion.
+     */
+    public function queryTransaction(string $acr, string $transactionId): array
+    {
+        $url = $this->baseUrl . '/partner/payment/v1/' . $acr . '/transactions/amount/status/' . $transactionId;
+
+        try {
+            Log::info('GP query transaction', ['acr' => $acr, 'txn_id' => $transactionId]);
+
+            $response = Http::timeout(15)
+                ->withBasicAuth($this->username, $this->password)
+                ->get($url);
+
+            $body   = $response->json();
+            $status = $body['amountTransaction']['transactionOperationStatus'] ?? null;
+
+            Log::info('GP query transaction response', [
+                'txn_id'      => $transactionId,
+                'http_status' => $response->status(),
+                'body'        => $body,
+            ]);
+
+            return [
+                'success'    => $status === 'Charged',
+                'status'     => $status,
+                'server_ref' => $body['amountTransaction']['serverReferenceCode'] ?? null,
+                'response'   => json_encode($body),
+            ];
+
+        } catch (\Throwable $e) {
+            Log::error('GP query transaction error', ['txn_id' => $transactionId, 'error' => $e->getMessage()]);
+            return [
+                'success'    => false,
+                'status'     => null,
+                'server_ref' => null,
+                'response'   => $e->getMessage(),
+            ];
+        }
+    }
+
     private function toMsisdn(string $phone): string
     {
         $clean = preg_replace('/\D/', '', $phone);

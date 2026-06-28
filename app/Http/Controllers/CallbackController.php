@@ -283,7 +283,6 @@ class CallbackController extends Controller
         ]);
 
         // POL1000 = Insufficient credit → attempt recharge-and-buy
-        /* now I off the recharge option here
         if (($charge['message_id'] ?? null) === 'POL1000') {
             $rechargeRef  = 'RCHG' . strtoupper(\Illuminate\Support\Str::random(13));
             $rechargeUrls = [
@@ -308,7 +307,6 @@ class CallbackController extends Controller
 
             ConsentLog::record($txnRef, $transaction->phone, 'recharge_failed', null, $recharge['reason']);
         }
-        */
 
         $failureReason = ($charge['message_id'] ?? null) === 'POL1000'
             ? 'আপনার অ্যাকাউন্টে পর্যাপ্ত ব্যালেন্স নেই। রিচার্জ করে পুনরায় চেষ্টা করুন।'
@@ -351,34 +349,29 @@ class CallbackController extends Controller
             return $this->handleConsentFailure($transaction, 'GP recharge ' . $status);
         }
 
-        $gpAmount    = (float) config('dcb.grameenphone.amount') * max(1, (int) ($transaction->qty ?? 1));
-        $chargeRef   = $transaction->gp_recharge_ref ?: $txnRef; // use recharge ref so GP doesn't reject the original failed ref
-
-        $charge = (new GpConsentService())->chargePayment(
+        // GP auto-charged during recharge — query to verify
+        // Try original txnRef as transactionId (RCHG ref returns 404)
+        $result = (new GpConsentService())->queryTransaction(
             $transaction->gp_customer_ref,
-            $transaction->gp_consent_id,
-            $chargeRef,
-            $gpAmount
+            $transaction->gp_recharge_ref
         );
 
-        if ($charge['success']) {
-            $transaction->update([
-                'gp_charge_request' => $charge['request'],
-                'dcb_response'      => $charge['response'],
-                'dcb_txn_id'        => $charge['server_ref'],
-            ]);
-            return $this->handleConsentSuccess($transaction, $charge['server_ref']);
+        $transaction->update(['dcb_response' => $result['response']]);
+
+        ConsentLog::record($txnRef, $transaction->phone, 'recharge_charge_query', [
+            'status'     => $result['status'],
+            'server_ref' => $result['server_ref'] ?? null,
+        ], $result['success'] ? null : ('Query status: ' . ($result['status'] ?? 'unknown')));
+
+        if ($result['success']) {
+            $transaction->update(['dcb_txn_id' => $result['server_ref']]);
+            return $this->handleConsentSuccess($transaction, $result['server_ref']);
         }
 
-        $transaction->update([
-            'gp_charge_request' => $charge['request'],
-            'dcb_response'      => $charge['response'],
-        ]);
-        ConsentLog::record($txnRef, $transaction->phone, 'recharge_charge_failed',
-            json_decode($charge['response'], true),
-            $charge['reason']
+        return $this->handleConsentFailure(
+            $transaction,
+            'রিচার্জের পরে চার্জ যাচাই করা যায়নি: ' . ($result['status'] ?? 'unknown')
         );
-        return $this->handleConsentFailure($transaction, $charge['reason']);
     }
 
     // ── Grameenphone async server callback (POST) ─────────────────────────────
