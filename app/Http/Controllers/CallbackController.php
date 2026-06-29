@@ -283,6 +283,7 @@ class CallbackController extends Controller
         ]);
 
         // POL1000 = Insufficient credit → attempt recharge-and-buy
+        /* buy and recharge flow is disabled for now, as it requires a separate GP subscription and may not be available for all users
         if (($charge['message_id'] ?? null) === 'POL1000') {
             $rechargeRef  = 'RCHG' . strtoupper(\Illuminate\Support\Str::random(13));
             $rechargeUrls = [
@@ -307,6 +308,7 @@ class CallbackController extends Controller
 
             ConsentLog::record($txnRef, $transaction->phone, 'recharge_failed', null, $recharge['reason']);
         }
+        */
 
         $failureReason = ($charge['message_id'] ?? null) === 'POL1000'
             ? 'আপনার অ্যাকাউন্টে পর্যাপ্ত ব্যালেন্স নেই। রিচার্জ করে পুনরায় চেষ্টা করুন।'
