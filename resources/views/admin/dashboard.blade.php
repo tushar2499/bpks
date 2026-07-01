@@ -94,6 +94,56 @@
 </div>
 @endif
 
+<!-- Operator-wise Sales -->
+@if($operatorStats->isNotEmpty())
+<div class="card mb-4" style="border-radius:1rem;border:none;">
+  <div class="card-header bg-white border-0 pt-3 pb-0">
+    <h6 class="fw-bold mb-0"><i class="fas fa-sim-card me-2 text-primary"></i>অপারেটর ভিত্তিক বিক্রয়</h6>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>অপারেটর</th>
+            <th class="text-end">বিক্রিত টিকেট</th>
+            <th class="text-end">মোট আয়</th>
+            <th style="width:35%">অংশীদারিত্ব</th>
+          </tr>
+        </thead>
+        <tbody>
+          @foreach($operatorStats as $op)
+          @php
+            $pct = $stats->sold > 0 ? ($op->sold / $stats->sold) * 100 : 0;
+            $color = match($op->operator) {
+              'Grameenphone' => '#16a34a',
+              'Robi'        => '#dc2626',
+              'Banglalink'  => '#ea580c',
+              'Teletalk'    => '#2563eb',
+              default       => '#6366f1',
+            };
+          @endphp
+          <tr>
+            <td class="fw-semibold">{{ $op->operator ?? 'অজানা' }}</td>
+            <td class="text-end">{{ number_format($op->sold) }}</td>
+            <td class="text-end">৳{{ number_format($op->revenue, 0) }}</td>
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <div class="progress flex-grow-1" style="height:8px;border-radius:4px;">
+                  <div class="progress-bar" style="width:{{ $pct }}%;background:{{ $color }};border-radius:4px;"></div>
+                </div>
+                <small class="text-muted" style="min-width:38px;">{{ number_format($pct, 1) }}%</small>
+              </div>
+            </td>
+          </tr>
+          @endforeach
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+@endif
+
 <!-- Sales Chart (last 60 days) -->
 @if(count($chartDates) > 0)
 <div class="card mb-4" style="border-radius:1rem;border:none;">
