@@ -13,6 +13,7 @@ use App\Services\SMS\RobiSmsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class CallbackController extends Controller
 {
@@ -456,6 +457,33 @@ class CallbackController extends Controller
             }
         }
 
+        // Path 3: Blink charged but no transaction found — create one from scratch
+        if (!$transaction && $msisdn && in_array(strtolower($rawStatus), ['succss', 'success'])) {
+            $duplicate = Transaction::where('blink_txn_id', $blinkTxnId)->where('status', 'success')->first();
+            if ($duplicate) {
+                $notifyLog->update(['txn_ref' => $duplicate->txn_ref, 'matched' => 'duplicate']);
+                return response()->json(['result' => 'already_success'], 200);
+            }
+
+            $qty         = $this->deriveQtyFromAmount($chargeAmount);
+            $transaction = $this->createBlinkTransactionWithTickets($msisdn, $qty, $blinkTxnId, $payload);
+
+            if (!$transaction) {
+                Log::warning('Blink notify: no tickets available for auto-create', ['msisdn' => $msisdn, 'qty' => $qty]);
+                $notifyLog->update(['matched' => 'no_tickets']);
+                return response()->json(['result' => 'no_tickets'], 200);
+            }
+
+            $notifyLog->update(['txn_ref' => $transaction->txn_ref, 'matched' => 'yes']);
+            ConsentLog::record($transaction->txn_ref, $transaction->phone, 'notify_received', $payload);
+            ConsentLog::record($transaction->txn_ref, $transaction->phone, 'ticket_assigned_auto', [
+                'ticket_ids' => $transaction->ticket_ids,
+                'note'       => 'auto-created: no pending transaction found',
+            ]);
+            $this->sendBlinkTicketSms($transaction);
+            return response()->json(['result' => 'ok_new'], 200);
+        }
+
         if (!$transaction) {
             Log::warning('Blink notify: no transaction matched', ['blink_txn_id' => $blinkTxnId, 'msisdn' => $msisdn]);
             return response()->json(['result' => 'not_found'], 200);
@@ -532,6 +560,55 @@ class CallbackController extends Controller
         }
 
         ConsentLog::record($transaction->txn_ref, $transaction->phone, $step, ['ticket_nos' => $ticketNos], $note);
+    }
+
+    private function deriveQtyFromAmount(mixed $chargeAmount): int
+    {
+        if (!is_numeric($chargeAmount) || $chargeAmount <= 0) return 1;
+        $prices = config('dcb.banglalink.prices', []);
+        $qty = array_search((float) $chargeAmount, array_map('floatval', $prices));
+        return $qty !== false ? (int) $qty : max(1, (int) round((float) $chargeAmount / 20));
+    }
+
+    private function createBlinkTransactionWithTickets(
+        string $phone, int $qty, string $blinkTxnId, array $payload
+    ): ?Transaction {
+        return DB::transaction(function () use ($phone, $qty, $blinkTxnId, $payload) {
+            $tickets = Ticket::where('status', 0)
+                ->orderBy('id')
+                ->limit($qty)
+                ->lockForUpdate()
+                ->get();
+
+            if ($tickets->count() < $qty) return null;
+
+            $ticketIds   = $tickets->pluck('id')->toArray();
+            $totalAmount = config('dcb.banglalink.prices', [])[$qty] ?? ($qty * 20);
+            $txnRef      = 'BLNK' . strtoupper(Str::random(13));
+
+            $transaction = Transaction::create([
+                'txn_ref'      => $txnRef,
+                'ticket_id'    => $tickets->first()->id,
+                'ticket_ids'   => $ticketIds,
+                'phone'        => $phone,
+                'operator'     => 'Banglalink',
+                'amount'       => $totalAmount,
+                'qty'          => $qty,
+                'status'       => 'success',
+                'blink_txn_id' => $blinkTxnId,
+                'dcb_response' => json_encode($payload),
+                'confirmed_at' => now(),
+            ]);
+
+            Ticket::whereIn('id', $ticketIds)->update([
+                'status'   => 1,
+                'phone'    => $phone,
+                'operator' => 'Banglalink',
+                'sold_at'  => now(),
+            ]);
+
+            return $transaction;
+        });
     }
 
     private function normalizeMsisdn(string $raw): ?string
