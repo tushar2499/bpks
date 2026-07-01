@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ConsentLog;
 use App\Models\Ticket;
 use App\Models\Transaction;
+use App\Services\Blink\BlinkService;
 use App\Services\DCB\DCBFactory;
 use App\Services\SMS\RobiSmsService;
 use Illuminate\Http\Request;
@@ -76,11 +77,13 @@ class BookingController extends Controller
                     'sold_at'  => now(),
                 ]);
 
+                /** @var \App\Models\User $admin */
+                $admin = auth()->user();
                 ConsentLog::record($txnRef, $phone, 'manual_booking', [
                     'ticket_ids'   => $ticketIds,
                     'ticket_nos'   => $tickets->pluck('ticket_no')->toArray(),
-                    'admin_id'     => auth()->id(),
-                    'admin_name'   => auth()->user()->name ?? null,
+                    'admin_id'     => $admin?->id,
+                    'admin_name'   => $admin?->name,
                     'operator'     => $operator,
                     'qty'          => $qty,
                     'amount'       => $totalAmount,
@@ -121,10 +124,16 @@ class BookingController extends Controller
                  . " লেনদেন: {$txnRef} | হেল্পলাইন: +8801725298711";
 
         try {
-            $sms  = new RobiSmsService();
-            $sent = $sms->send($transaction->phone, $message, $txnRef);
+            $sent = match ($transaction->operator) {
+                'Banglalink' => (new BlinkService())->sendSms($transaction->phone, $message, $txnRef),
+                'Robi'       => (new RobiSmsService())->send($transaction->phone, $message, $txnRef),
+                'Grameenphone' => false, // GP SMS requires ACR from consent flow; unavailable for manual bookings
+                default      => (new RobiSmsService())->send($transaction->phone, $message, $txnRef),
+            };
             $step = $sent ? 'sms_sent' : 'sms_failed';
-            $note = $sent ? null : 'SMS service returned false';
+            $note = $sent ? null : ($transaction->operator === 'Grameenphone'
+                ? 'GP SMS requires ACR — not available for manual bookings'
+                : 'SMS service returned false');
         } catch (\Throwable $e) {
             Log::error('Manual booking SMS error', ['txn' => $txnRef, 'err' => $e->getMessage()]);
             $step = 'sms_failed';
