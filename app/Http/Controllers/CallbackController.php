@@ -406,16 +406,21 @@ class CallbackController extends Controller
 
     public function blinkNotify(Request $request)
     {
-        $payload       = $request->all();
-        $blinkTxnId    = $payload['transectionId'] ?? null;
-        $rawStatus     = $payload['status']         ?? '';
-        $chargeAmount  = $payload['ChargeAmount']   ?? null;
+        $payload      = $request->all();
+        $blinkTxnId   = $payload['transectionId'] ?? null;
+        $rawStatus    = $payload['status']         ?? '';
+        $chargeAmount = $payload['ChargeAmount']   ?? null;
+
+        // Normalize MSISDN from payload (880XXXXXXXXXX → 01XXXXXXXXXX)
+        $rawMsisdn = $payload['msisdn'] ?? $payload['MSISDN'] ?? $payload['phone'] ?? null;
+        $msisdn    = $rawMsisdn ? $this->normalizeMsisdn((string) $rawMsisdn) : null;
 
         Log::info('Blink notify', $payload);
 
         // Store every notify hit in its own log table first
         $notifyLog = BlinkNotifyLog::create([
             'blink_txn_id'  => $blinkTxnId ?? 'unknown',
+            'msisdn'        => $msisdn,
             'status'        => $rawStatus,
             'charge_amount' => is_numeric($chargeAmount) ? $chargeAmount : null,
             'payload'       => json_encode($payload),
@@ -427,14 +432,32 @@ class CallbackController extends Controller
             return response()->json(['result' => 'missing_transectionId'], 200);
         }
 
-        // Match transaction by blink_txn_id stored during OTP request
+        // Primary match: by blink_txn_id stored during OTP request
         $transaction = Transaction::where('blink_txn_id', $blinkTxnId)
             ->where('operator', 'Banglalink')
             ->first();
 
+        // Fallback: match by phone if blink_txn_id differs (Blink may use different ID in notify vs OTP request)
+        if (!$transaction && $msisdn) {
+            $transaction = Transaction::where('phone', $msisdn)
+                ->where('operator', 'Banglalink')
+                ->where('status', 'pending')
+                ->latest('id')
+                ->first();
+
+            if ($transaction) {
+                Log::warning('Blink notify: matched by phone fallback', [
+                    'blink_txn_id' => $blinkTxnId,
+                    'phone'        => $msisdn,
+                    'txn_ref'      => $transaction->txn_ref,
+                ]);
+                // Update blink_txn_id so future notifies match directly
+                $transaction->update(['blink_txn_id' => $blinkTxnId]);
+            }
+        }
+
         if (!$transaction) {
-            Log::warning('Blink notify: no transaction matched', ['blink_txn_id' => $blinkTxnId]);
-            $notifyLog->update(['matched' => 'no']);
+            Log::warning('Blink notify: no transaction matched', ['blink_txn_id' => $blinkTxnId, 'msisdn' => $msisdn]);
             return response()->json(['result' => 'not_found'], 200);
         }
 
