@@ -574,7 +574,18 @@ class CallbackController extends Controller
         string $phone, int $qty, string $blinkTxnId, array $payload
     ): ?Transaction {
         return DB::transaction(function () use ($phone, $qty, $blinkTxnId, $payload) {
-            $tickets = Ticket::where('status', 0)
+            // Mirror BuyController tier logic: global active tier = lowest tier with unsold Banglalink tickets
+            $globalActiveTier = DB::table('tickets')
+                ->where('operator', 'Banglalink')
+                ->where('status', 0)
+                ->whereNotNull('series')
+                ->min('sale_tier');
+
+            if ($globalActiveTier === null) return null;
+
+            $tickets = Ticket::where('operator', 'Banglalink')
+                ->where('status', 0)
+                ->where('sale_tier', $globalActiveTier)
                 ->orderBy('id')
                 ->limit($qty)
                 ->lockForUpdate()
