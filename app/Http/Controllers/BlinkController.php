@@ -65,6 +65,12 @@ class BlinkController extends Controller
         }
 
         if ($transaction->status === 'failed') {
+            // Check if auto-created transaction exists for this phone within last 5 min
+            $autoTxn = $this->findRecentAutoSuccess($transaction->phone, $txnRef);
+            if ($autoTxn) {
+                return redirect()->route('buy.success', ['ref' => $autoTxn->txn_ref]);
+            }
+
             return redirect()->route('buy.index')
                 ->withErrors(['phone' => 'পেমেন্ট ব্যর্থ হয়েছে: ' . ($transaction->failure_reason ?? 'অজানা কারণ')]);
         }
@@ -73,14 +79,34 @@ class BlinkController extends Controller
         return view('blink.waiting', compact('transaction', 'maskedPhone'));
     }
 
-    public function pollStatus(string $txnRef)
+    public function pollStatus(Request $request, string $txnRef)
     {
         $transaction = Transaction::where('txn_ref', $txnRef)
             ->where('operator', 'Banglalink')
             ->first();
 
+        $phone = $transaction?->phone ?? $request->query('phone');
+
         if (!$transaction) {
+            if ($phone) {
+                $autoTxn = $this->findRecentAutoSuccess($phone, $txnRef);
+                if ($autoTxn) {
+                    return response()->json([
+                        'status'   => 'success',
+                        'redirect' => route('buy.success', ['ref' => $autoTxn->txn_ref]),
+                    ]);
+                }
+            }
             return response()->json(['status' => 'expired']);
+        }
+
+        // If auto-created success exists for this phone (within 5 min), redirect regardless of original txn state
+        $autoTxn = $this->findRecentAutoSuccess($phone, $txnRef);
+        if ($autoTxn) {
+            return response()->json([
+                'status'   => 'success',
+                'redirect' => route('buy.success', ['ref' => $autoTxn->txn_ref]),
+            ]);
         }
 
         if ($transaction->status === 'success') {
@@ -144,6 +170,17 @@ class BlinkController extends Controller
         ConsentLog::record($txnRef, $transaction->phone, 'otp_resent', $result);
 
         return back()->with('success', 'নতুন OTP পাঠানো হয়েছে।');
+    }
+
+    private function findRecentAutoSuccess(string $phone, string $excludeTxnRef): ?Transaction
+    {
+        return Transaction::where('phone', $phone)
+            ->where('operator', 'Banglalink')
+            ->where('status', 'success')
+            ->where('txn_ref', '!=', $excludeTxnRef)
+            ->where('confirmed_at', '>=', now()->subMinutes(5))
+            ->latest('confirmed_at')
+            ->first();
     }
 
     private function maskPhone(string $phone): string

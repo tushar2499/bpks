@@ -98,7 +98,8 @@
 <script>
 (function () {
   const txnRef    = @json($transaction->txn_ref);
-  const statusUrl = @json(route('blink.status', $transaction->txn_ref));
+  const phone     = @json($transaction->phone);
+  const statusUrl = @json(route('blink.status', $transaction->txn_ref)) + '?phone=' + encodeURIComponent(phone);
   const buyUrl    = @json(route('buy.index'));
 
   const pendingBlock   = document.getElementById('pendingBlock');
