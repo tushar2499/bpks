@@ -124,16 +124,27 @@ class BookingController extends Controller
                  . " লেনদেন: {$txnRef} | হেল্পলাইন: +8801725298711";
 
         try {
-            $sent = match ($transaction->operator) {
-                'Banglalink' => (new BlinkService())->sendSms($transaction->phone, $message, $txnRef),
-                'Robi'       => (new RobiSmsService())->send($transaction->phone, $message, $txnRef),
-                'Grameenphone' => false, // GP SMS requires ACR from consent flow; unavailable for manual bookings
-                default      => (new RobiSmsService())->send($transaction->phone, $message, $txnRef),
-            };
+            if ($transaction->operator === 'Grameenphone') {
+                $acr = Transaction::where('phone', $transaction->phone)
+                    ->where('operator', 'Grameenphone')
+                    ->whereNotNull('gp_customer_ref')
+                    ->orderByDesc('id')
+                    ->value('gp_customer_ref');
+
+                $sent = $acr
+                    ? (new \App\Services\DCB\GpConsentService())->sendSms($acr, $transaction->phone, $message, $txnRef)
+                    : false;
+                $note = $sent ? null : ($acr
+                    ? 'GP SMS failed'
+                    : 'GP SMS skipped — no ACR found for this number');
+            } else {
+                $sent = match ($transaction->operator) {
+                    'Banglalink' => (new BlinkService())->sendSms($transaction->phone, $message, $txnRef),
+                    default      => (new RobiSmsService())->send($transaction->phone, $message, $txnRef),
+                };
+                $note = $sent ? null : 'SMS service returned false';
+            }
             $step = $sent ? 'sms_sent' : 'sms_failed';
-            $note = $sent ? null : ($transaction->operator === 'Grameenphone'
-                ? 'GP SMS requires ACR — not available for manual bookings'
-                : 'SMS service returned false');
         } catch (\Throwable $e) {
             Log::error('Manual booking SMS error', ['txn' => $txnRef, 'err' => $e->getMessage()]);
             $step = 'sms_failed';
