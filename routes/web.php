@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AuthController;
+use App\Http\Controllers\Admin\BookingController;
 use App\Http\Controllers\Admin\CustomerCareController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\JourneyController;
@@ -107,6 +108,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('reports/daily-detail', [ReportController::class, 'dailyDetail'])->name('reports.daily-detail');
 
         Route::get('journey', [JourneyController::class, 'index'])->name('journey.index');
+
+        Route::get('booking', [BookingController::class, 'index'])->name('booking.index');
+        Route::post('booking', [BookingController::class, 'store'])->name('booking.store');
 
         Route::get('customer-care', [CustomerCareController::class, 'index'])->name('customer-care.index');
 

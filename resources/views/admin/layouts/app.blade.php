@@ -72,6 +72,9 @@
       <a href="{{ route('admin.tickets.generate') }}" class="nav-link {{ request()->routeIs('admin.tickets.generate') ? 'active' : '' }}">
         <i class="fas fa-plus-circle fa"></i> টিকেট তৈরি
       </a>
+      <a href="{{ route('admin.booking.index') }}" class="nav-link {{ request()->routeIs('admin.booking.*') ? 'active' : '' }}">
+        <i class="fas fa-cash-register fa"></i> ম্যানুয়াল বুকিং
+      </a>
       @endif
       @if(Auth::user()->canViewReports())
       <a href="{{ route('admin.reports.index') }}" class="nav-link {{ request()->routeIs('admin.reports.index') ? 'active' : '' }}">
