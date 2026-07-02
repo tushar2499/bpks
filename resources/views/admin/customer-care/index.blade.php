@@ -361,6 +361,9 @@
                 @elseif($matchedTxnRef)
                   <span class="badge bg-success"><i class="fas fa-check me-1"></i>টিকেট তৈরি হয়েছে</span>
                   <div><code style="font-size:.7rem">{{ $matchedTxnRef }}</code></div>
+                @elseif($blinkFullyFulfilled)
+                  <span class="badge bg-success"><i class="fas fa-check me-1"></i>টিকেট তৈরি হয়েছে</span>
+                  <div class="text-muted" style="font-size:.7rem">{{ $blinkActualQty }}/{{ $blinkExpectedQty }} টিকেট</div>
                 @else
                   @if($errors->has('assign'))
                     <div class="text-danger small mb-1">{{ $errors->first('assign') }}</div>
@@ -382,6 +385,12 @@
           </tbody>
         </table>
       </div>
+      @if($blinkExpectedQty > 0)
+      <div class="px-4 py-2 small text-muted border-top">
+        Blink চার্জ মোট: <strong>{{ $blinkExpectedQty }}</strong> টিকেট প্রত্যাশিত &nbsp;·&nbsp;
+        আমাদের DB: <strong>{{ $blinkActualQty }}</strong> Banglalink টিকেট সফল
+      </div>
+      @endif
     </div>
   </div>
   @elseif($blinkStatus && !$blinkStatus['success'])

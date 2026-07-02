@@ -21,7 +21,10 @@ class CustomerCareController extends Controller
         $transactions = collect();
         $summary      = null;
         $blinkStatus  = null;
-        $blinkMatchedMap = collect();
+        $blinkMatchedMap     = collect();
+        $blinkExpectedQty    = 0;
+        $blinkActualQty      = 0;
+        $blinkFullyFulfilled = false;
 
         if ($request->filled('phone')) {
             $phone = preg_replace('/\D/', '', trim($request->phone));
@@ -83,10 +86,18 @@ class CustomerCareController extends Controller
 
                     $blinkMatchedMap = $blinkMatchedMap->merge($txnMatches);
                 }
+
+                // Global fulfillment check: total charged ÷ 20 vs actual Banglalink tickets in DB
+                $blinkExpectedQty    = (int) round($successRecords->sum('chargeAmount') / 20);
+                $blinkActualQty      = $transactions->where('status', 'success')->where('operator', 'Banglalink')->sum('qty');
+                $blinkFullyFulfilled = $blinkExpectedQty > 0 && $blinkActualQty >= $blinkExpectedQty;
             }
         }
 
-        return view('admin.customer-care.index', compact('phone', 'transactions', 'summary', 'blinkStatus', 'blinkMatchedMap'));
+        return view('admin.customer-care.index', compact(
+            'phone', 'transactions', 'summary', 'blinkStatus', 'blinkMatchedMap',
+            'blinkExpectedQty', 'blinkActualQty', 'blinkFullyFulfilled'
+        ));
     }
 
     public function assignBlinkTicket(Request $request)
