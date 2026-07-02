@@ -167,7 +167,7 @@ class CustomerCareController extends Controller
         // Update or create notify log
         BlinkNotifyLog::updateOrCreate(
             ['blink_txn_id' => $blinkTxnId],
-            ['matched' => 'yes', 'txn_ref' => $transaction->txn_ref, 'msisdn' => $phone]
+            ['matched' => 'yes', 'txn_ref' => $transaction->txn_ref, 'msisdn' => $phone, 'payload' => '{}']
         );
 
         /** @var \App\Models\User $admin */
