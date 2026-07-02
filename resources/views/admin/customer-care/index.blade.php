@@ -322,10 +322,12 @@
               <th>Amount</th>
               <th>Reason</th>
               <th>Transaction ID</th>
+              <th>বরাদ্দ</th>
             </tr>
           </thead>
           <tbody>
             @foreach($bd['records'] ?? [] as $rec)
+            @php $isSuccessCharge = ($rec['chargeAmount'] ?? 0) > 0 && stripos($rec['reason'] ?? '', 'success') !== false; @endphp
             <tr>
               <td class="px-3">
                 <div class="small">{{ $rec['date'] ?? '—' }}</div>
@@ -350,6 +352,28 @@
                 </span>
               </td>
               <td><code style="font-size:.72rem">{{ $rec['transactionId'] ?? '—' }}</code></td>
+              <td>
+                @if(!$isSuccessCharge)
+                  <span class="text-muted">—</span>
+                @elseif(isset($blinkMatchedMap[$rec['transactionId']]))
+                  <span class="badge bg-success"><i class="fas fa-check me-1"></i>টিকেট তৈরি হয়েছে</span>
+                  <div><code style="font-size:.7rem">{{ $blinkMatchedMap[$rec['transactionId']] }}</code></div>
+                @else
+                  @if($errors->has('assign'))
+                    <div class="text-danger small mb-1">{{ $errors->first('assign') }}</div>
+                  @endif
+                  <form method="POST" action="{{ route('admin.customer-care.blink-assign') }}">
+                    @csrf
+                    <input type="hidden" name="msisdn" value="{{ $phone }}">
+                    <input type="hidden" name="blink_txn_id" value="{{ $rec['transactionId'] }}">
+                    <input type="hidden" name="charge_amount" value="{{ $rec['chargeAmount'] }}">
+                    <button type="submit" class="btn btn-sm btn-danger"
+                            onclick="return confirm('{{ $phone }} নম্বরে ৳{{ $rec[\'chargeAmount\'] }} এর টিকেট বরাদ্দ করবেন?')">
+                      <i class="fas fa-ticket-alt me-1"></i>বরাদ্দ করুন
+                    </button>
+                  </form>
+                @endif
+              </td>
             </tr>
             @endforeach
           </tbody>

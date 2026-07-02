@@ -113,6 +113,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('booking', [BookingController::class, 'store'])->name('booking.store');
 
         Route::get('customer-care', [CustomerCareController::class, 'index'])->name('customer-care.index');
+        Route::post('customer-care/blink-assign', [CustomerCareController::class, 'assignBlinkTicket'])->name('customer-care.blink-assign');
 
         Route::get('users', [UserController::class, 'index'])->name('users.index');
         Route::get('users/create', [UserController::class, 'create'])->name('users.create');
