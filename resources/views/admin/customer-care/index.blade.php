@@ -368,7 +368,7 @@
                     <input type="hidden" name="blink_txn_id" value="{{ $rec['transactionId'] }}">
                     <input type="hidden" name="charge_amount" value="{{ $rec['chargeAmount'] }}">
                     <button type="submit" class="btn btn-sm btn-danger"
-                            onclick="return confirm('{{ $phone }} নম্বরে ৳{{ $rec[\'chargeAmount\'] }} এর টিকেট বরাদ্দ করবেন?')">
+                            onclick="return confirm('{{ $phone }} নম্বরে ৳{{ $rec["chargeAmount"] }} এর টিকেট বরাদ্দ করবেন?')">
                       <i class="fas fa-ticket-alt me-1"></i>বরাদ্দ করুন
                     </button>
                   </form>
