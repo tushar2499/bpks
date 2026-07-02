@@ -113,6 +113,26 @@ class BlinkService
         }
     }
 
+    public function getTransactionStatus(string $phone): array
+    {
+        $msisdn = preg_replace('/\D/', '', $phone);
+        if (strlen($msisdn) === 13 && str_starts_with($msisdn, '880')) {
+            $msisdn = '0' . substr($msisdn, 3);
+        }
+        $url = self::BASE_URL . '/DOB/blink_transaction_status.php';
+        try {
+            $response = Http::timeout(10)->get($url, ['msisdn' => $msisdn]);
+            $data     = $response->json();
+            return [
+                'success' => ($data['status'] ?? '') === 'success',
+                'data'    => $data,
+            ];
+        } catch (\Throwable $e) {
+            Log::warning('Blink getTransactionStatus failed', ['msisdn' => $msisdn, 'err' => $e->getMessage()]);
+            return ['success' => false, 'data' => null];
+        }
+    }
+
     // Normalize to 880XXXXXXXXXX format
     private function toMsisdn(string $phone): string
     {

@@ -50,8 +50,11 @@ class CustomerCareController extends Controller
                 'operators'          => $transactions->pluck('operator')->unique()->filter()->values(),
                 'last_purchase'      => $successful->sortByDesc('confirmed_at')->first()?->confirmed_at,
             ];
+            $blinkStatus = (new \App\Services\Blink\BlinkService())->getTransactionStatus($phone);
         }
 
-        return view('admin.customer-care.index', compact('phone', 'transactions', 'summary'));
+        $blinkStatus = $blinkStatus ?? null;
+
+        return view('admin.customer-care.index', compact('phone', 'transactions', 'summary', 'blinkStatus'));
     }
 }

@@ -240,6 +240,75 @@
       </div>
     </div>
 
+    {{-- Blink Transaction Status --}}
+    @if($blinkStatus && $blinkStatus['success'])
+    @php $bd = $blinkStatus['data']; @endphp
+    <div class="card search-card mt-4">
+      <div class="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
+        <h6 class="fw-bold mb-0"><i class="fas fa-mobile-alt me-2 text-danger"></i>Blink (Banglalink) ট্রানজেকশন স্ট্যাটাস</h6>
+        <div class="small text-muted">
+          মোট: <strong>{{ $bd['totalRows'] ?? 0 }}</strong> &nbsp;|&nbsp;
+          সর্বশেষ: <strong>{{ $bd['latestDate'] ?? '—' }}</strong> &nbsp;|&nbsp;
+          স্ট্যাটাস: <span class="badge bg-{{ ($bd['latestStatus'] ?? '') === 'A' ? 'success' : 'secondary' }}">{{ $bd['latestStatus'] ?? '—' }}</span>
+          &nbsp;|&nbsp; Action: <span class="badge bg-secondary">{{ $bd['latestAction'] ?? '—' }}</span>
+        </div>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-sm table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th class="px-3">তারিখ / সময়</th>
+                <th>Action</th>
+                <th>Command</th>
+                <th>Type</th>
+                <th>Amount</th>
+                <th>Reason</th>
+                <th>Transaction ID</th>
+              </tr>
+            </thead>
+            <tbody>
+              @foreach($bd['records'] ?? [] as $rec)
+              <tr>
+                <td class="px-3">
+                  <div class="small">{{ $rec['date'] ?? '—' }}</div>
+                  <div class="text-muted" style="font-size:.75rem">{{ $rec['time'] ?? '' }}</div>
+                </td>
+                <td>
+                  <span class="badge bg-{{ ($rec['action'] ?? '') === 'Ondemand' ? 'primary' : 'secondary' }}">
+                    {{ $rec['action'] ?? '—' }}
+                  </span>
+                </td>
+                <td><span class="text-muted small">{{ $rec['command'] ?? '—' }}</span></td>
+                <td>
+                  <span class="badge bg-{{ ($rec['type'] ?? '') === 'PAYMENT' ? 'warning text-dark' : 'light text-dark border' }}">
+                    {{ $rec['type'] ?? '—' }}
+                  </span>
+                </td>
+                <td>{{ ($rec['chargeAmount'] ?? 0) > 0 ? '৳' . $rec['chargeAmount'] : '—' }}</td>
+                <td>
+                  @php $reason = $rec['reason'] ?? ''; @endphp
+                  <span class="small
+                    {{ stripos($reason, 'success') !== false ? 'text-success' : (strtolower($reason) === 'low balance' ? 'text-danger' : 'text-muted') }}">
+                    {{ $reason ?: '—' }}
+                  </span>
+                </td>
+                <td><code style="font-size:.72rem">{{ $rec['transactionId'] ?? '—' }}</code></td>
+              </tr>
+              @endforeach
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    @elseif($phone && $blinkStatus && !$blinkStatus['success'])
+    <div class="card search-card mt-4">
+      <div class="card-body text-muted small p-3">
+        <i class="fas fa-info-circle me-1"></i>Blink API থেকে কোনো ডেটা পাওয়া যায়নি।
+      </div>
+    </div>
+    @endif
+
     {{-- GP Recharge Log --}}
     @php
       $rechargeSteps = ['recharge_initiated', 'recharge_failed', 'recharge_callback_received', 'recharge_charge_failed'];
