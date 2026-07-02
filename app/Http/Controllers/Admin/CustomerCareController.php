@@ -70,6 +70,13 @@ class CustomerCareController extends Controller
                     $blinkMatchedMap = BlinkNotifyLog::whereIn('blink_txn_id', $successTxnIds)
                         ->where('matched', 'yes')
                         ->pluck('txn_ref', 'blink_txn_id');
+
+                    // Also check transactions table — source of truth in case notify log was never updated
+                    $txnMatches = Transaction::whereIn('blink_txn_id', $successTxnIds)
+                        ->where('status', 'success')
+                        ->pluck('txn_ref', 'blink_txn_id');
+
+                    $blinkMatchedMap = $blinkMatchedMap->merge($txnMatches);
                 }
             }
         }
