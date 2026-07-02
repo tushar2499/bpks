@@ -327,7 +327,10 @@
           </thead>
           <tbody>
             @foreach($bd['records'] ?? [] as $rec)
-            @php $isSuccessCharge = ($rec['chargeAmount'] ?? 0) > 0 && stripos($rec['reason'] ?? '', 'success') !== false; @endphp
+            @php
+              $isSuccessCharge = ($rec['chargeAmount'] ?? 0) > 0 && stripos($rec['reason'] ?? '', 'success') !== false;
+              $matchedTxnRef   = $blinkMatchedMap[$rec['transactionId'] ?? ''] ?? $blinkMatchedMap[$rec['clientTransactionId'] ?? ''] ?? null;
+            @endphp
             <tr>
               <td class="px-3">
                 <div class="small">{{ $rec['date'] ?? '—' }}</div>
@@ -355,9 +358,9 @@
               <td>
                 @if(!$isSuccessCharge)
                   <span class="text-muted">—</span>
-                @elseif(isset($blinkMatchedMap[$rec['transactionId']]))
+                @elseif($matchedTxnRef)
                   <span class="badge bg-success"><i class="fas fa-check me-1"></i>টিকেট তৈরি হয়েছে</span>
-                  <div><code style="font-size:.7rem">{{ $blinkMatchedMap[$rec['transactionId']] }}</code></div>
+                  <div><code style="font-size:.7rem">{{ $matchedTxnRef }}</code></div>
                 @else
                   @if($errors->has('assign'))
                     <div class="text-danger small mb-1">{{ $errors->first('assign') }}</div>

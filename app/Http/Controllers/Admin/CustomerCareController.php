@@ -62,17 +62,22 @@ class CustomerCareController extends Controller
             $blinkStatus = (new BlinkService())->getTransactionStatus($phone);
 
             if ($blinkStatus && $blinkStatus['success']) {
-                $successTxnIds = collect($blinkStatus['data']['records'] ?? [])
-                    ->filter(fn($r) => ($r['chargeAmount'] ?? 0) > 0 && stripos($r['reason'] ?? '', 'success') !== false)
-                    ->pluck('transactionId')->filter()->values()->all();
+                $successRecords = collect($blinkStatus['data']['records'] ?? [])
+                    ->filter(fn($r) => ($r['chargeAmount'] ?? 0) > 0 && stripos($r['reason'] ?? '', 'success') !== false);
 
-                if ($successTxnIds) {
-                    $blinkMatchedMap = BlinkNotifyLog::whereIn('blink_txn_id', $successTxnIds)
+                // Blink status API uses 'transactionId' (deAct... format).
+                // Our blink_notify_logs stores the notify payload's 'transectionId' which equals 'clientTransactionId'.
+                // Check both to handle either format.
+                $transactionIds  = $successRecords->pluck('transactionId')->filter()->values()->all();
+                $clientIds       = $successRecords->pluck('clientTransactionId')->filter()->values()->all();
+                $allIds          = array_unique(array_merge($transactionIds, $clientIds));
+
+                if ($allIds) {
+                    $blinkMatchedMap = BlinkNotifyLog::whereIn('blink_txn_id', $allIds)
                         ->where('matched', 'yes')
                         ->pluck('txn_ref', 'blink_txn_id');
 
-                    // Also check transactions table — source of truth in case notify log was never updated
-                    $txnMatches = Transaction::whereIn('blink_txn_id', $successTxnIds)
+                    $txnMatches = Transaction::whereIn('blink_txn_id', $allIds)
                         ->where('status', 'success')
                         ->pluck('txn_ref', 'blink_txn_id');
 
