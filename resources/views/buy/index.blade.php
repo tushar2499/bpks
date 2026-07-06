@@ -355,7 +355,7 @@
         <!-- Find ticket link -->
         <div class="text-center mt-2 d-none d-lg-block">
           <a href="{{ route('my-ticket.show') }}" style="font-size:.8rem;color:var(--blue-mid);">
-            <i class="fas fa-search me-1"></i>আগের টিকেট খুঁজুন
+            <i class="fas fa-search me-1"></i> টিকেট ভেরিফিকেশন
           </a>
         </div>
 
@@ -465,7 +465,7 @@
   <div class="container">
     <div class="mb-1">বাংলাদেশ প্রতিবন্ধী কল্যাণ সমিতি (বিপিকেএস) &nbsp;|&nbsp; জাতীয় লটারি-২০২৬</div>
     <div>Powered by <a href="#">B2M Technologies Ltd.</a> &nbsp;|&nbsp;
-      <a href="{{ route('my-ticket.show') }}">টিকেট খুঁজুন</a>
+      <a href="{{ route('my-ticket.show') }}">টিকেট ভেরিফিকেশন</a>
     </div>
   </div>
 </footer>
