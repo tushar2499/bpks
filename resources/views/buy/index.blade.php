@@ -477,7 +477,7 @@
       <i class="fas fa-headset"></i>
     </a>
     <a href="{{ route('my-ticket.show') }}" class="btn btn-outline-primary btn-sm rounded-pill flex-shrink-0" style="font-size:.75rem;">
-      <i class="fas fa-search me-1"></i>টিকেট
+      <i class="fas fa-search me-1"></i>টিকেট ভেরিফিকেশন
     </a>
     <div class="flex-fill text-center small fw-bold" style="color:var(--blue);font-size:.72rem;">
       <i class="fas fa-clock me-1"></i><span id="countdown-bar"></span>
