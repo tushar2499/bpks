@@ -8,6 +8,8 @@ use App\Models\Ticket;
 use App\Models\Transaction;
 use App\Services\Blink\BlinkService;
 use App\Services\DCB\DCBFactory;
+use App\Services\DCB\GpConsentService;
+use App\Services\SMS\RobiSmsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -124,17 +126,8 @@ class ReplacementTicketController extends Controller
             'by'         => $admin?->name,
         ]);
 
-        $ticketNos   = $tickets->pluck('ticket_no')->implode(', ');
-        $downloadUrl = route('ticket.download-all-pdf', ['phone' => $phone]);
-        $message     = "প্রিয় গ্রাহক, আপনার নতুন বৈধ টিকিট নম্বর: {$ticketNos}। অনুগ্রহ করে এই নম্বরটিই আপনার অফিসিয়াল টিকিট হিসেবে ব্যবহার করুন। আপনার সহযোগিতার জন্য ধন্যবাদ। – BPKS\n\nDownload: {$downloadUrl}";
-
-        try {
-            $sent = (new BlinkService())->sendSms($phone, $message, $txn->txn_ref);
-            ConsentLog::record($txn->txn_ref, $phone, $sent ? 'sms_sent' : 'sms_failed', ['ticket_nos' => $ticketNos]);
-        } catch (\Throwable $e) {
-            Log::error('Replacement ticket SMS error', ['txn' => $txn->txn_ref, 'err' => $e->getMessage()]);
-            ConsentLog::record($txn->txn_ref, $phone, 'sms_failed', null, $e->getMessage());
-        }
+        $ticketNos = $tickets->pluck('ticket_no')->implode(', ');
+        $this->sendReplacementSms($txn, $ticketNos);
 
         return redirect()->route('admin.replacement-tickets.index')
             ->with('success', "রিপ্লেসমেন্ট টিকেট সফলভাবে ইস্যু হয়েছে: {$txn->txn_ref} | টিকেট: {$ticketNos}");
@@ -149,18 +142,45 @@ class ReplacementTicketController extends Controller
             return back()->with('error', 'টিকেট তথ্য পাওয়া যায়নি।');
         }
 
-        $ticketNos   = $tickets->pluck('ticket_no')->implode(', ');
-        $downloadUrl = route('ticket.download-all-pdf', ['phone' => $transaction->phone]);
+        $ticketNos = $tickets->pluck('ticket_no')->implode(', ');
+        $this->sendReplacementSms($transaction, $ticketNos, true);
+
+        return back()->with('success', 'SMS পুনরায় পাঠানো হয়েছে: ' . $transaction->txn_ref);
+    }
+
+    private function sendReplacementSms(Transaction $transaction, string $ticketNos, bool $retry = false): void
+    {
+        $phone       = $transaction->phone;
+        $downloadUrl = route('ticket.download-all-pdf', ['phone' => $phone]);
         $message     = "প্রিয় গ্রাহক, আপনার নতুন বৈধ টিকিট নম্বর: {$ticketNos}। অনুগ্রহ করে এই নম্বরটিই আপনার অফিসিয়াল টিকিট হিসেবে ব্যবহার করুন। আপনার সহযোগিতার জন্য ধন্যবাদ। – BPKS\n\nDownload: {$downloadUrl}";
 
         try {
-            $sent = (new BlinkService())->sendSms($transaction->phone, $message, $transaction->txn_ref);
-            ConsentLog::record($transaction->txn_ref, $transaction->phone, $sent ? 'sms_sent' : 'sms_failed', ['ticket_nos' => $ticketNos, 'retry' => true]);
+            if ($transaction->operator === 'Grameenphone') {
+                $acr = Transaction::where('phone', $phone)
+                    ->where('operator', 'Grameenphone')
+                    ->whereNotNull('gp_customer_ref')
+                    ->orderByDesc('id')
+                    ->value('gp_customer_ref');
+
+                $sent = $acr
+                    ? (new GpConsentService())->sendSms($acr, $phone, $message, $transaction->txn_ref)
+                    : false;
+                $note = $sent ? null : ($acr ? 'GP SMS failed' : 'GP SMS skipped — no ACR found');
+            } else {
+                $sent = match ($transaction->operator) {
+                    'Banglalink' => (new BlinkService())->sendSms($phone, $message, $transaction->txn_ref),
+                    default      => (new RobiSmsService())->send($phone, $message, $transaction->txn_ref),
+                };
+                $note = $sent ? null : 'SMS service returned false';
+            }
+
+            $step = $sent ? 'sms_sent' : 'sms_failed';
         } catch (\Throwable $e) {
-            Log::error('Replacement ticket SMS retry error', ['txn' => $transaction->txn_ref, 'err' => $e->getMessage()]);
-            return back()->with('error', 'SMS পাঠাতে ব্যর্থ: ' . $e->getMessage());
+            Log::error('Replacement ticket SMS error', ['txn' => $transaction->txn_ref, 'err' => $e->getMessage()]);
+            $step = 'sms_failed';
+            $note = $e->getMessage();
         }
 
-        return back()->with('success', 'SMS পুনরায় পাঠানো হয়েছে: ' . $transaction->txn_ref);
+        ConsentLog::record($transaction->txn_ref, $phone, $step, ['ticket_nos' => $ticketNos, 'retry' => $retry], $note ?? null);
     }
 }
