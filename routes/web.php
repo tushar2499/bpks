@@ -118,6 +118,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         Route::get('replacement-tickets', [ReplacementTicketController::class, 'index'])->name('replacement-tickets.index');
         Route::post('replacement-tickets', [ReplacementTicketController::class, 'store'])->name('replacement-tickets.store');
+        Route::post('replacement-tickets/{transaction}/resend-sms', [ReplacementTicketController::class, 'resendSms'])->name('replacement-tickets.resend-sms');
 
         Route::get('users', [UserController::class, 'index'])->name('users.index');
         Route::get('users/create', [UserController::class, 'create'])->name('users.create');

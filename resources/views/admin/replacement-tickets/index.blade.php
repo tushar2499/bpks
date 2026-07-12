@@ -108,14 +108,22 @@
               <td>৳{{ number_format($txn->amount, 2) }}</td>
               <td><code style="font-size:.72rem">{{ $txn->txn_ref }}</code></td>
               <td>
-                @if($txn->smsLog)
-                  @if(strtolower($txn->smsLog->response ?? '') === 'sent')
-                    <span class="badge bg-success"><i class="fas fa-check me-1"></i>পাঠানো হয়েছে</span>
-                  @else
-                    <span class="badge bg-danger"><i class="fas fa-times me-1"></i>ব্যর্থ</span>
-                  @endif
+                @if($txn->smsLog && strtolower($txn->smsLog->response ?? '') === 'sent')
+                  <span class="badge bg-success"><i class="fas fa-check me-1"></i>পাঠানো হয়েছে</span>
                 @else
-                  <span class="text-muted small">—</span>
+                  <div class="d-flex flex-column gap-1">
+                    @if($txn->smsLog)
+                      <span class="badge bg-danger"><i class="fas fa-times me-1"></i>ব্যর্থ</span>
+                    @else
+                      <span class="badge bg-secondary">পাঠানো হয়নি</span>
+                    @endif
+                    <form method="POST" action="{{ route('admin.replacement-tickets.resend-sms', $txn->id) }}">
+                      @csrf
+                      <button type="submit" class="btn btn-sm btn-outline-primary" style="font-size:.72rem;">
+                        <i class="fas fa-paper-plane me-1"></i>SMS পাঠান
+                      </button>
+                    </form>
+                  </div>
                 @endif
               </td>
             </tr>

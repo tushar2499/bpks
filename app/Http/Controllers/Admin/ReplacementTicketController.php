@@ -139,4 +139,28 @@ class ReplacementTicketController extends Controller
         return redirect()->route('admin.replacement-tickets.index')
             ->with('success', "রিপ্লেসমেন্ট টিকেট সফলভাবে ইস্যু হয়েছে: {$txn->txn_ref} | টিকেট: {$ticketNos}");
     }
+
+    public function resendSms(Transaction $transaction)
+    {
+        $ids     = $transaction->ticket_ids ?? array_filter([$transaction->ticket_id]);
+        $tickets = Ticket::whereIn('id', $ids)->get();
+
+        if ($tickets->isEmpty()) {
+            return back()->with('error', 'টিকেট তথ্য পাওয়া যায়নি।');
+        }
+
+        $ticketNos   = $tickets->pluck('ticket_no')->implode(', ');
+        $downloadUrl = route('ticket.download-all-pdf', ['phone' => $transaction->phone]);
+        $message     = "প্রিয় গ্রাহক, আপনার নতুন বৈধ টিকিট নম্বর: {$ticketNos}। অনুগ্রহ করে এই নম্বরটিই আপনার অফিসিয়াল টিকিট হিসেবে ব্যবহার করুন। আপনার সহযোগিতার জন্য ধন্যবাদ। – BPKS\n\nDownload: {$downloadUrl}";
+
+        try {
+            $sent = (new BlinkService())->sendSms($transaction->phone, $message, $transaction->txn_ref);
+            ConsentLog::record($transaction->txn_ref, $transaction->phone, $sent ? 'sms_sent' : 'sms_failed', ['ticket_nos' => $ticketNos, 'retry' => true]);
+        } catch (\Throwable $e) {
+            Log::error('Replacement ticket SMS retry error', ['txn' => $transaction->txn_ref, 'err' => $e->getMessage()]);
+            return back()->with('error', 'SMS পাঠাতে ব্যর্থ: ' . $e->getMessage());
+        }
+
+        return back()->with('success', 'SMS পুনরায় পাঠানো হয়েছে: ' . $transaction->txn_ref);
+    }
 }
