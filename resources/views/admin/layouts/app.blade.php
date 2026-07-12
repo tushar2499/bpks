@@ -93,6 +93,11 @@
       <a href="{{ route('admin.customer-care.index') }}" class="nav-link {{ request()->routeIs('admin.customer-care.*') ? 'active' : '' }}">
         <i class="fas fa-headset fa"></i> কাস্টমার কেয়ার
       </a>
+      @if(Auth::user()->canManageTickets())
+      <a href="{{ route('admin.replacement-tickets.index') }}" class="nav-link {{ request()->routeIs('admin.replacement-tickets*') ? 'active' : '' }}">
+        <i class="fas fa-exchange-alt fa"></i> রিপ্লেসমেন্ট টিকেট
+      </a>
+      @endif
       @if(Auth::user()->isAdmin())
       <a href="{{ route('admin.users.index') }}" class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
         <i class="fas fa-users fa"></i> ব্যবহারকারী
