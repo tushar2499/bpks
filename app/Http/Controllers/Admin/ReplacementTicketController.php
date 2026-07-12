@@ -190,6 +190,10 @@ class ReplacementTicketController extends Controller
             $note = $e->getMessage();
         }
 
+        // Normalize smsLog response so the view can check === 'sent' regardless of operator
+        \App\Models\SmsLog::where('txn_ref', $transaction->txn_ref)
+            ->update(['response' => $sent ? 'sent' : 'failed']);
+
         ConsentLog::record($transaction->txn_ref, $phone, $step, ['ticket_nos' => $ticketNos, 'retry' => $retry], $note ?? null);
     }
 }
