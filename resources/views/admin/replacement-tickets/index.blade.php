@@ -37,6 +37,7 @@
             <div class="form-text d-flex align-items-center gap-2 mt-1">
               <span>অপারেটর:</span>
               <span id="detectedOperator" class="badge bg-secondary">শনাক্ত হয়নি</span>
+              <span class="text-muted" style="font-size:.7rem">(013/017→GP · 014/019→BL · 016/018→Robi · 015→TT)</span>
             </div>
           </div>
 
