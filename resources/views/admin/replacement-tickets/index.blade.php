@@ -31,10 +31,20 @@
 
           <div class="mb-3">
             <label class="form-label fw-semibold">MSISDN (মোবাইল নম্বর) <span class="text-danger">*</span></label>
-            <input type="text" name="msisdn" class="form-control form-control-lg"
+            <input type="text" name="msisdn" id="msisdnInput" class="form-control form-control-lg"
                    value="{{ old('msisdn') }}" placeholder="01XXXXXXXXX"
                    inputmode="tel" maxlength="15" required autofocus>
-            <div class="form-text">অপারেটর স্বয়ংক্রিয়ভাবে শনাক্ত হবে (017→GP, 018/016→Robi, 019/014→BL, 015→TT)</div>
+            <div class="form-text d-flex align-items-center gap-2 mt-1">
+              <span>অপারেটর:</span>
+              <span id="detectedOperator" class="badge bg-secondary">শনাক্ত হয়নি</span>
+            </div>
+          </div>
+
+          <div class="mb-3 d-none" id="acrField">
+            <label class="form-label fw-semibold">GP ACR (Customer Ref) <span class="text-danger">*</span></label>
+            <input type="text" name="acr" id="acrInput" class="form-control form-control-lg"
+                   value="{{ old('acr') }}" placeholder="ACR নম্বর দিন">
+            <div class="form-text">Grameenphone গ্রাহকের ACR ছাড়া SMS পাঠানো সম্ভব নয়।</div>
           </div>
 
           <div class="mb-4">
@@ -119,6 +129,11 @@
                     @endif
                     <form method="POST" action="{{ route('admin.replacement-tickets.resend-sms', $txn->id) }}">
                       @csrf
+                      @if($txn->operator === 'Grameenphone')
+                        <input type="text" name="acr" class="form-control form-control-sm mb-1"
+                               placeholder="GP ACR" value="{{ $txn->gp_customer_ref ?? '' }}"
+                               style="font-size:.72rem;min-width:130px;">
+                      @endif
                       <button type="submit" class="btn btn-sm btn-outline-primary" style="font-size:.72rem;">
                         <i class="fas fa-paper-plane me-1"></i>SMS পাঠান
                       </button>
@@ -144,6 +159,45 @@
 
 @push('scripts')
 <script>
+const PREFIX_MAP = {
+  '013': 'Grameenphone', '017': 'Grameenphone',
+  '014': 'Banglalink',   '019': 'Banglalink',
+  '016': 'Robi',         '018': 'Robi',
+  '015': 'Teletalk',
+};
+const OP_COLOR = {
+  'Grameenphone': 'success', 'Banglalink': 'danger',
+  'Robi': 'warning text-dark', 'Teletalk': 'info text-dark',
+};
+
+function detectOperator(val) {
+  const clean = val.replace(/\D/g, '');
+  const norm  = (clean.length === 10 && clean[0] === '1') ? '0' + clean : clean;
+  return PREFIX_MAP[norm.substring(0, 3)] || null;
+}
+
+const msisdnInput       = document.getElementById('msisdnInput');
+const acrField          = document.getElementById('acrField');
+const acrInput          = document.getElementById('acrInput');
+const detectedOperator  = document.getElementById('detectedOperator');
+
+msisdnInput.addEventListener('input', function() {
+  const op = detectOperator(this.value);
+  if (op) {
+    detectedOperator.className = 'badge bg-' + (OP_COLOR[op] || 'secondary');
+    detectedOperator.textContent = op;
+  } else {
+    detectedOperator.className = 'badge bg-secondary';
+    detectedOperator.textContent = 'শনাক্ত হয়নি';
+  }
+  const isGP = op === 'Grameenphone';
+  acrField.classList.toggle('d-none', !isGP);
+  acrInput.required = isGP;
+});
+
+// Restore on page load (validation error re-render)
+if (msisdnInput.value) msisdnInput.dispatchEvent(new Event('input'));
+
 document.getElementById('replaceForm').addEventListener('submit', function(e) {
   const btn = document.getElementById('submitBtn');
   btn.disabled = true;

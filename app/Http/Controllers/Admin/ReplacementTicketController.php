@@ -40,6 +40,7 @@ class ReplacementTicketController extends Controller
         $request->validate([
             'msisdn' => ['required'],
             'qty'    => ['required', 'integer', 'min:1', 'max:10'],
+            'acr'    => ['nullable', 'string'],
         ]);
 
         $phone = preg_replace('/\D/', '', trim($request->msisdn));
@@ -54,8 +55,10 @@ class ReplacementTicketController extends Controller
 
         $qty = (int) $request->qty;
 
+        $acr = $operator === 'Grameenphone' ? trim($request->acr ?? '') : null;
+
         try {
-            $result = DB::transaction(function () use ($phone, $qty, $operator) {
+            $result = DB::transaction(function () use ($phone, $qty, $operator, $acr) {
                 $tier = DB::table('tickets')
                     ->where('operator', $operator)
                     ->where('status', 0)
@@ -85,17 +88,18 @@ class ReplacementTicketController extends Controller
                 $ticketIds = $tickets->pluck('id')->toArray();
                 $txnRef    = 'RPLC' . strtoupper(Str::random(12));
 
-                $txn = Transaction::create([
-                    'txn_ref'      => $txnRef,
-                    'ticket_id'    => $tickets->first()->id,
-                    'ticket_ids'   => $ticketIds,
-                    'phone'        => $phone,
-                    'operator'     => $operator,
-                    'amount'       => $qty * 20,
-                    'qty'          => $qty,
-                    'status'       => 'success',
-                    'confirmed_at' => now(),
-                ]);
+                $txn = Transaction::create(array_filter([
+                    'txn_ref'          => $txnRef,
+                    'ticket_id'        => $tickets->first()->id,
+                    'ticket_ids'       => $ticketIds,
+                    'phone'            => $phone,
+                    'operator'         => $operator,
+                    'amount'           => $qty * 20,
+                    'qty'              => $qty,
+                    'status'           => 'success',
+                    'confirmed_at'     => now(),
+                    'gp_customer_ref'  => $acr ?: null,
+                ]));
 
                 Ticket::whereIn('id', $ticketIds)->update([
                     'status'   => 1,
@@ -133,7 +137,7 @@ class ReplacementTicketController extends Controller
             ->with('success', "রিপ্লেসমেন্ট টিকেট সফলভাবে ইস্যু হয়েছে: {$txn->txn_ref} | টিকেট: {$ticketNos}");
     }
 
-    public function resendSms(Transaction $transaction)
+    public function resendSms(Request $request, Transaction $transaction)
     {
         $ids     = $transaction->ticket_ids ?? array_filter([$transaction->ticket_id]);
         $tickets = Ticket::whereIn('id', $ids)->get();
@@ -142,8 +146,13 @@ class ReplacementTicketController extends Controller
             return back()->with('error', 'টিকেট তথ্য পাওয়া যায়নি।');
         }
 
+        // If ACR supplied via form for GP, store it so future lookups succeed
+        if ($transaction->operator === 'Grameenphone' && $request->filled('acr')) {
+            $transaction->update(['gp_customer_ref' => trim($request->acr)]);
+        }
+
         $ticketNos = $tickets->pluck('ticket_no')->implode(', ');
-        $this->sendReplacementSms($transaction, $ticketNos, true);
+        $this->sendReplacementSms($transaction->fresh(), $ticketNos, true);
 
         return back()->with('success', 'SMS পুনরায় পাঠানো হয়েছে: ' . $transaction->txn_ref);
     }
