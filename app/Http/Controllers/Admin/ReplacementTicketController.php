@@ -152,16 +152,20 @@ class ReplacementTicketController extends Controller
         }
 
         $ticketNos = $tickets->pluck('ticket_no')->implode(', ');
-        $this->sendReplacementSms($transaction->fresh(), $ticketNos, true);
+        $sent = $this->sendReplacementSms($transaction->fresh(), $ticketNos, true);
 
-        return back()->with('success', 'SMS পুনরায় পাঠানো হয়েছে: ' . $transaction->txn_ref);
+        return $sent
+            ? back()->with('success', 'SMS পুনরায় পাঠানো হয়েছে: ' . $transaction->txn_ref)
+            : back()->with('error', 'SMS পাঠানো ব্যর্থ হয়েছে।');
     }
 
-    private function sendReplacementSms(Transaction $transaction, string $ticketNos, bool $retry = false): void
+    private function sendReplacementSms(Transaction $transaction, string $ticketNos, bool $retry = false): bool
     {
         $phone       = $transaction->phone;
         $downloadUrl = route('ticket.download-all-pdf', ['phone' => $phone]);
         $message     = "প্রিয় গ্রাহক, আপনার নতুন বৈধ টিকিট নম্বর: {$ticketNos}। অনুগ্রহ করে এই নম্বরটিই আপনার অফিসিয়াল টিকিট হিসেবে ব্যবহার করুন। আপনার সহযোগিতার জন্য ধন্যবাদ। – BPKS\n\nDownload: {$downloadUrl}";
+
+        $sent = false;
 
         try {
             if ($transaction->operator === 'Grameenphone') {
@@ -195,5 +199,7 @@ class ReplacementTicketController extends Controller
             ->update(['response' => $sent ? 'sent' : 'failed']);
 
         ConsentLog::record($transaction->txn_ref, $phone, $step, ['ticket_nos' => $ticketNos, 'retry' => $retry], $note ?? null);
+
+        return $sent;
     }
 }
