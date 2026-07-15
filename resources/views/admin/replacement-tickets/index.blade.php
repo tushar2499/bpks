@@ -182,6 +182,9 @@ const acrField          = document.getElementById('acrField');
 const acrInput          = document.getElementById('acrInput');
 const detectedOperator  = document.getElementById('detectedOperator');
 
+const lookupAcrUrl = @json(route('admin.replacement-tickets.lookup-acr'));
+let acrLookupTimer = null;
+
 msisdnInput.addEventListener('input', function() {
   const op = detectOperator(this.value);
   if (op) {
@@ -194,6 +197,27 @@ msisdnInput.addEventListener('input', function() {
   const isGP = op === 'Grameenphone';
   acrField.classList.toggle('d-none', !isGP);
   acrInput.required = isGP;
+
+  if (isGP && this.value.replace(/\D/g,'').length >= 11) {
+    clearTimeout(acrLookupTimer);
+    acrLookupTimer = setTimeout(() => {
+      fetch(lookupAcrUrl + '?phone=' + encodeURIComponent(this.value))
+        .then(r => r.json())
+        .then(data => {
+          if (data.acr) {
+            acrInput.value = data.acr;
+            acrInput.style.borderColor = '#198754';
+          } else {
+            acrInput.value = '';
+            acrInput.style.borderColor = '';
+          }
+        })
+        .catch(() => {});
+    }, 400);
+  } else {
+    acrInput.value = '';
+    acrInput.style.borderColor = '';
+  }
 });
 
 // Restore on page load (validation error re-render)

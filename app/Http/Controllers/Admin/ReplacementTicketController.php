@@ -35,6 +35,22 @@ class ReplacementTicketController extends Controller
         return view('admin.replacement-tickets.index', compact('transactions'));
     }
 
+    public function lookupAcr(Request $request)
+    {
+        $phone = preg_replace('/\D/', '', trim($request->query('phone', '')));
+        if (strlen($phone) === 13 && str_starts_with($phone, '880')) {
+            $phone = '0' . substr($phone, 3);
+        }
+
+        $acr = Transaction::where('phone', $phone)
+            ->where('operator', 'Grameenphone')
+            ->whereNotNull('gp_customer_ref')
+            ->orderByDesc('id')
+            ->value('gp_customer_ref');
+
+        return response()->json(['acr' => $acr]);
+    }
+
     public function store(Request $request)
     {
         $request->validate([
