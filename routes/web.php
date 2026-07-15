@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\BookingController;
 use App\Http\Controllers\Admin\CustomerCareController;
+use App\Http\Controllers\Admin\RechargeImportController;
 use App\Http\Controllers\Admin\ReplacementTicketController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\JourneyController;
@@ -115,6 +116,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         Route::get('customer-care', [CustomerCareController::class, 'index'])->name('customer-care.index');
         Route::post('customer-care/blink-assign', [CustomerCareController::class, 'assignBlinkTicket'])->name('customer-care.blink-assign');
+
+        Route::get('recharge-imports', [RechargeImportController::class, 'index'])->name('recharge-imports.index');
+        Route::post('recharge-imports/upload', [RechargeImportController::class, 'upload'])->name('recharge-imports.upload');
+        Route::post('recharge-imports/bulk-generate', [RechargeImportController::class, 'bulkGenerate'])->name('recharge-imports.bulk-generate');
+        Route::post('recharge-imports/{import}/generate', [RechargeImportController::class, 'generateTicket'])->name('recharge-imports.generate');
 
         Route::get('replacement-tickets', [ReplacementTicketController::class, 'index'])->name('replacement-tickets.index');
         Route::post('replacement-tickets', [ReplacementTicketController::class, 'store'])->name('replacement-tickets.store');

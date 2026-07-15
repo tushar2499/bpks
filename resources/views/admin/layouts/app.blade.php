@@ -97,6 +97,9 @@
       <a href="{{ route('admin.replacement-tickets.index') }}" class="nav-link {{ request()->routeIs('admin.replacement-tickets*') ? 'active' : '' }}">
         <i class="fas fa-exchange-alt fa"></i> রিপ্লেসমেন্ট টিকেট
       </a>
+      <a href="{{ route('admin.recharge-imports.index') }}" class="nav-link {{ request()->routeIs('admin.recharge-imports*') ? 'active' : '' }}">
+        <i class="fas fa-upload fa"></i> রিচার্জ ইম্পোর্ট
+      </a>
       @endif
       @if(Auth::user()->isAdmin())
       <a href="{{ route('admin.users.index') }}" class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
