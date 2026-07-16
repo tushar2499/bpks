@@ -432,7 +432,8 @@ class ReportController extends Controller
             ->where('operator', $operator)
             ->where('series', $seriesDb)
             ->where('status', $type === 'sold' ? 1 : 0)
-            ->orderBy('ticket_no');
+            ->orderBy('ticket_no', 'asc')
+            ->orderBy('id', 'asc');
 
         $spreadsheet = new Spreadsheet();
         $sheet       = $spreadsheet->getActiveSheet();
