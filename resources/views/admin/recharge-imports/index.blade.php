@@ -91,14 +91,6 @@
           </div>
         </div>
       </div>
-      <div class="col-4">
-        <div class="card text-center h-100" style="border-radius:1rem;border:none;">
-          <div class="card-body py-3">
-            <div style="font-size:1.6rem;font-weight:700;color:#0dcaf0">{{ number_format($stats->already_had) }}</div>
-            <div class="text-muted small mt-1">আগেই ছিল</div>
-          </div>
-        </div>
-      </div>
     </div>
   </div>
 </div>
@@ -171,10 +163,11 @@
               };
             @endphp
             <tr>
+              @php $alreadyHad = $import->ticket_status === 0 && in_array($import->id, $alreadyFulfilledIds); @endphp
               <td class="px-3">
-                @if($import->ticket_status === 0)
+                @if($import->ticket_status === 0 && !$alreadyHad)
                   <input type="checkbox" class="form-check-input row-check" value="{{ $import->id }}">
-                @elseif($import->ticket_status === 2)
+                @elseif($alreadyHad)
                   <input type="checkbox" class="form-check-input" disabled>
                 @endif
               </td>
@@ -196,7 +189,7 @@
                       <div><code style="font-size:.68rem">{{ $import->txn_ref }}</code></div>
                     @endif
                   </div>
-                @elseif($import->ticket_status === 2)
+                @elseif($alreadyHad)
                   <div class="d-flex flex-column gap-1">
                     <span class="badge bg-info text-dark"><i class="fas fa-info-circle me-1"></i>আগেই টিকেট ছিল</span>
                     <button class="btn btn-sm btn-outline-secondary" style="font-size:.72rem;" disabled>
