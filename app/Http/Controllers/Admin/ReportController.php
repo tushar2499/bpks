@@ -37,6 +37,14 @@ class ReportController extends Controller
             ->orderByDesc('count')
             ->get();
 
+        $ticketCombos = DB::table('tickets')
+            ->whereNotNull('series')
+            ->when($opFilter, fn($q) => $q->where('operator', $opFilter))
+            ->selectRaw('series, operator, SUM(status=1) as sold, SUM(status=0) as unsold')
+            ->groupBy('series', 'operator')
+            ->orderBy('series')->orderBy('operator')
+            ->get();
+
         $daily = DB::table('tickets')
             ->where('status', 1)
             ->when($opFilter, fn($q) => $q->where('operator', $opFilter))
@@ -63,7 +71,7 @@ class ReportController extends Controller
                 ->groupBy(fn($r) => $r->operator . '||' . $r->series);
         }
 
-        return view('admin.reports.index', compact('stats', 'byOperator', 'daily', 'tierProgress'));
+        return view('admin.reports.index', compact('stats', 'byOperator', 'daily', 'tierProgress', 'ticketCombos'));
     }
 
     public function exportCsv()
@@ -399,6 +407,104 @@ class ReportController extends Controller
         return response()->streamDownload(function () use ($spreadsheet) {
             $writer = new Xlsx($spreadsheet);
             $writer->save('php://output');
+        }, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ]);
+    }
+
+    public function exportTicketsXlsx(string $operator, string $series, string $type)
+    {
+        $opMap = [
+            'Grameenphone' => 'GP',
+            'Banglalink'   => 'BL',
+            'Robi'         => 'Robi',
+            'Teletalk'     => 'TT',
+        ];
+
+        if (!array_key_exists($operator, $opMap) || !in_array($type, ['sold', 'unsold'])) {
+            abort(404);
+        }
+
+        // series stored with trailing dash, URL param without
+        $seriesDb = rtrim($series, '-') . '-';
+
+        $query = DB::table('tickets')
+            ->where('operator', $operator)
+            ->where('series', $seriesDb)
+            ->where('status', $type === 'sold' ? 1 : 0)
+            ->orderBy('ticket_no');
+
+        $spreadsheet = new Spreadsheet();
+        $sheet       = $spreadsheet->getActiveSheet();
+        $label       = $opMap[$operator] . '-' . rtrim($series, '-');
+        $sheet->setTitle($label);
+
+        // Title row
+        $lastCol  = $type === 'sold' ? 'C' : 'B';
+        $sheetTitle = 'BPKS Lottery 2026 — ' . $operator . ' — ' . rtrim($series, '-') . ' — ' . ($type === 'sold' ? 'Sold' : 'Unsold');
+        $sheet->mergeCells("A1:{$lastCol}1");
+        $sheet->setCellValue('A1', $sheetTitle);
+        $sheet->getStyle('A1')->applyFromArray([
+            'font'      => ['bold' => true, 'size' => 12, 'color' => ['rgb' => 'FFFFFF']],
+            'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '1565C0']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+        ]);
+        $sheet->getRowDimension(1)->setRowHeight(22);
+
+        // Headers
+        $headers = $type === 'sold' ? ['#', 'Ticket No', 'Msisdn'] : ['#', 'Ticket No'];
+        foreach ($headers as $i => $h) {
+            $sheet->setCellValue(chr(ord('A') + $i) . '2', $h);
+        }
+        $sheet->getStyle("A2:{$lastCol}2")->applyFromArray([
+            'font'      => ['bold' => true],
+            'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '4DD0E1']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+        ]);
+
+        // Data — chunk to avoid memory spike on large datasets
+        $rowNum = 3;
+        $seq    = 1;
+        $query->chunk(2000, function ($rows) use ($sheet, &$rowNum, &$seq, $type) {
+            foreach ($rows as $r) {
+                $ticketDisplay = str_replace('-', ' ', $r->ticket_no);
+                $sheet->setCellValue("A{$rowNum}", $seq++);
+                $sheet->setCellValue("B{$rowNum}", $ticketDisplay);
+                if ($type === 'sold') {
+                    $sheet->setCellValueExplicit(
+                        "C{$rowNum}",
+                        $r->phone ?? '',
+                        \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING
+                    );
+                }
+                if ($rowNum % 2 === 0) {
+                    $endCol = $type === 'sold' ? 'C' : 'B';
+                    $sheet->getStyle("A{$rowNum}:{$endCol}{$rowNum}")->applyFromArray([
+                        'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'F5F5F5']],
+                    ]);
+                }
+                $rowNum++;
+            }
+        });
+
+        // Column widths
+        $sheet->getColumnDimension('A')->setWidth(8);
+        $sheet->getColumnDimension('B')->setWidth(16);
+        if ($type === 'sold') {
+            $sheet->getColumnDimension('C')->setWidth(18);
+        }
+
+        // Border
+        $endRow = $rowNum - 1;
+        if ($endRow >= 2) {
+            $sheet->getStyle("A2:{$lastCol}{$endRow}")->getBorders()->getAllBorders()
+                ->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        }
+
+        $filename = 'BPKS-' . $label . '-' . ucfirst($type) . '-' . date('Y-m-d') . '.xlsx';
+
+        return response()->streamDownload(function () use ($spreadsheet) {
+            (new Xlsx($spreadsheet))->save('php://output');
         }, $filename, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         ]);

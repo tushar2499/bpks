@@ -33,6 +33,57 @@
   </div>
 </div>
 
+<!-- Ticket Details Excel (Sold / Unsold) -->
+<div class="card mb-4" style="border-radius:1rem;border:none;">
+  <div class="card-header bg-white border-bottom py-3 px-4">
+    <h6 class="fw-bold mb-0"><i class="fas fa-ticket-alt me-2 text-primary"></i>টিকেট ডিটেইলস — অপারেটর ও সিরিজ ওয়াইজ</h6>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-sm table-hover mb-0">
+        <thead class="table-light">
+          <tr>
+            <th class="px-4">অপারেটর</th>
+            <th>সিরিজ</th>
+            <th class="text-end">বিক্রিত</th>
+            <th class="text-end">অবিক্রিত</th>
+            <th class="text-end">মোট</th>
+            <th class="text-center">ডাউনলোড</th>
+          </tr>
+        </thead>
+        <tbody>
+          @foreach($ticketCombos as $row)
+          @php $seriesSlug = rtrim($row->series, '-'); @endphp
+          <tr>
+            <td class="px-4 fw-semibold">{{ $row->operator }}</td>
+            <td><span class="badge bg-secondary">{{ $seriesSlug }}</span></td>
+            <td class="text-end text-success fw-semibold">{{ number_format($row->sold) }}</td>
+            <td class="text-end text-warning fw-semibold">{{ number_format($row->unsold) }}</td>
+            <td class="text-end">{{ number_format($row->sold + $row->unsold) }}</td>
+            <td class="text-center">
+              <div class="d-flex gap-1 justify-content-center">
+                @if($row->sold > 0)
+                <a href="{{ route('admin.reports.tickets-xlsx', [$row->operator, $seriesSlug, 'sold']) }}"
+                   class="btn btn-sm btn-outline-success" title="Sold tickets with MSISDN">
+                  <i class="fas fa-download me-1"></i>Sold
+                </a>
+                @endif
+                @if($row->unsold > 0)
+                <a href="{{ route('admin.reports.tickets-xlsx', [$row->operator, $seriesSlug, 'unsold']) }}"
+                   class="btn btn-sm btn-outline-secondary" title="Unsold ticket numbers">
+                  <i class="fas fa-download me-1"></i>Unsold
+                </a>
+                @endif
+              </div>
+            </td>
+          </tr>
+          @endforeach
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
 <!-- Summary Cards -->
 <div class="row g-3 mb-4">
   <div class="col-sm-6 col-xl-3">
