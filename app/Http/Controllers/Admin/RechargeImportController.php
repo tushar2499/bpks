@@ -31,19 +31,20 @@ class RechargeImportController extends Controller
         $alreadyFulfilledIds = [];
         if ($pendingIds->isNotEmpty()) {
             $alreadyFulfilledIds = DB::table('recharge_imports as ri')
-                ->join('transactions as t', function ($join) {
-                    $join->on('t.phone', '=', 'ri.msisdn')
-                         ->where('t.status', 'success')
-                         ->whereColumn('t.qty', 'ri.ticket_count')
-                         ->whereRaw("t.txn_ref NOT LIKE 'RCHG%'")
-                         ->whereRaw("t.txn_ref NOT LIKE 'RPLC%'")
-                         ->whereRaw("t.txn_ref NOT LIKE 'MBKG%'")
-                         ->whereRaw("t.confirmed_at BETWEEN DATE_SUB(ri.trx_time, INTERVAL 5 MINUTE)
-                                                        AND DATE_ADD(ri.trx_time, INTERVAL 5 MINUTE)");
-                })
                 ->whereIn('ri.id', $pendingIds)
+                ->whereNotNull('ri.trx_time')
+                ->whereExists(function ($q) {
+                    $q->select(DB::raw(1))
+                      ->from('transactions as t')
+                      ->whereColumn('t.phone', 'ri.msisdn')
+                      ->whereColumn('t.qty', 'ri.ticket_count')
+                      ->where('t.status', 'success')
+                      ->whereRaw("t.txn_ref NOT LIKE 'RCHG%'")
+                      ->whereRaw("t.txn_ref NOT LIKE 'RPLC%'")
+                      ->whereRaw("t.txn_ref NOT LIKE 'MBKG%'")
+                      ->whereRaw("t.confirmed_at BETWEEN DATE_SUB(ri.trx_time, INTERVAL 5 MINUTE) AND DATE_ADD(ri.trx_time, INTERVAL 5 MINUTE)");
+                })
                 ->pluck('ri.id')
-                ->unique()
                 ->toArray();
         }
 
