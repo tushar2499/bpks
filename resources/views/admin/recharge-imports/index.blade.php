@@ -148,6 +148,8 @@
                       <div><code style="font-size:.68rem">{{ $import->txn_ref }}</code></div>
                     @endif
                   </div>
+                @elseif($import->ticket_status === 2)
+                  <span class="badge bg-info text-dark"><i class="fas fa-info-circle me-1"></i>আগেই টিকেট ছিল</span>
                 @else
                   <div class="d-flex flex-column gap-1">
                     <span class="badge bg-warning text-dark">টিকেট হয়নি</span>

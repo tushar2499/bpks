@@ -102,6 +102,12 @@ class RechargeImportController extends Controller
                 continue;
             }
 
+            if ($this->alreadyHasTicket($import)) {
+                $import->update(['ticket_status' => 2]);
+                $failed[] = $phone . ' (ইতোমধ্যে টিকেট ছিল)';
+                continue;
+            }
+
             try {
                 $result = DB::transaction(function () use ($phone, $qty, $operator) {
                     $tier = DB::table('tickets')
@@ -205,6 +211,12 @@ class RechargeImportController extends Controller
                 ->with('error', 'ইতোমধ্যে টিকেট তৈরি হয়েছে।');
         }
 
+        if ($this->alreadyHasTicket($import)) {
+            $import->update(['ticket_status' => 2]);
+            return redirect()->route('admin.recharge-imports.index', ['page' => $page])
+                ->with('error', $import->msisdn . ' — এই গ্রাহক ইতোমধ্যে টিকেট পেয়েছেন (DB-তে ম্যাচিং সফল লেনদেন পাওয়া গেছে)।');
+        }
+
         $phone    = $import->msisdn;
         $qty      = $import->ticket_count;
         $operator = DCBFactory::detectOperator($phone);
@@ -299,6 +311,20 @@ class RechargeImportController extends Controller
 
         return redirect()->route('admin.recharge-imports.index', ['page' => $page])
             ->with('success', "টিকেট তৈরি হয়েছে: {$ticketNos} | রেফারেন্স: {$txn->txn_ref}");
+    }
+
+    private function alreadyHasTicket(RechargeImport $import): bool
+    {
+        if (!$import->trx_time) return false;
+
+        return Transaction::where('phone', $import->msisdn)
+            ->where('status', 'success')
+            ->where('qty', $import->ticket_count)
+            ->whereBetween('confirmed_at', [
+                $import->trx_time->copy()->subMinutes(10),
+                $import->trx_time->copy()->addMinutes(10),
+            ])
+            ->exists();
     }
 
     private function normalizePhone(string $phone): string
