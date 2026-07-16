@@ -20,6 +20,20 @@ class RechargeImportController extends Controller
 {
     public function index()
     {
+        // Auto-mark rows where customer already has a matching successful transaction
+        DB::statement("
+            UPDATE recharge_imports ri
+            INNER JOIN transactions t
+                ON  t.phone  = ri.msisdn
+                AND t.status = 'success'
+                AND t.qty    = ri.ticket_count
+                AND t.confirmed_at BETWEEN DATE_SUB(ri.trx_time, INTERVAL 10 MINUTE)
+                                       AND DATE_ADD(ri.trx_time, INTERVAL 10 MINUTE)
+            SET ri.ticket_status = 2
+            WHERE ri.ticket_status = 0
+              AND ri.trx_time IS NOT NULL
+        ");
+
         $imports = RechargeImport::orderByDesc('created_at')->paginate(50);
         return view('admin.recharge-imports.index', compact('imports'));
     }
