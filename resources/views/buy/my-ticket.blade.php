@@ -148,7 +148,9 @@
 <body>
 <div class="main-card">
 
-  <div class="page-icon"><i class="fas fa-ticket-alt"></i></div>
+  <div class="text-center mb-3">
+    <img src="{{ asset('logo.svg') }}" alt="BPKS" style="height:72px;width:auto;">
+  </div>
   <h2 class="fw-bold text-center mb-1" style="font-size:1.3rem;">টিকেট খুঁজুন</h2>
   <p class="text-muted text-center mb-4" style="font-size:.85rem;">আপনার ফোন নম্বর দিন</p>
 
