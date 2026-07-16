@@ -128,6 +128,8 @@
               <td class="px-3">
                 @if($import->ticket_status === 0)
                   <input type="checkbox" class="form-check-input row-check" value="{{ $import->id }}">
+                @elseif($import->ticket_status === 2)
+                  <input type="checkbox" class="form-check-input" disabled>
                 @endif
               </td>
               <td>
@@ -149,7 +151,12 @@
                     @endif
                   </div>
                 @elseif($import->ticket_status === 2)
-                  <span class="badge bg-info text-dark"><i class="fas fa-info-circle me-1"></i>আগেই টিকেট ছিল</span>
+                  <div class="d-flex flex-column gap-1">
+                    <span class="badge bg-info text-dark"><i class="fas fa-info-circle me-1"></i>আগেই টিকেট ছিল</span>
+                    <button class="btn btn-sm btn-outline-secondary" style="font-size:.72rem;" disabled>
+                      <i class="fas fa-ticket-alt me-1"></i>টিকেট তৈরি করুন
+                    </button>
+                  </div>
                 @else
                   <div class="d-flex flex-column gap-1">
                     <span class="badge bg-warning text-dark">টিকেট হয়নি</span>
