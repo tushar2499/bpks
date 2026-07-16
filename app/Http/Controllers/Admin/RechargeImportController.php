@@ -20,6 +20,25 @@ class RechargeImportController extends Controller
 {
     public function index()
     {
+        // Reset false-positive status=2 rows (matched against RCHG/RPLC/MBKG — admin-generated txns)
+        DB::statement("
+            UPDATE recharge_imports ri
+            SET ri.ticket_status = 0
+            WHERE ri.ticket_status = 2
+              AND ri.trx_time IS NOT NULL
+              AND NOT EXISTS (
+                SELECT 1 FROM transactions t
+                WHERE t.phone  = ri.msisdn
+                  AND t.status = 'success'
+                  AND t.qty    = ri.ticket_count
+                  AND t.txn_ref NOT LIKE 'RCHG%'
+                  AND t.txn_ref NOT LIKE 'RPLC%'
+                  AND t.txn_ref NOT LIKE 'MBKG%'
+                  AND t.confirmed_at BETWEEN DATE_SUB(ri.trx_time, INTERVAL 5 MINUTE)
+                                         AND DATE_ADD(ri.trx_time, INTERVAL 5 MINUTE)
+              )
+        ");
+
         // Auto-mark rows where customer already has a matching successful transaction
         DB::statement("
             UPDATE recharge_imports ri
@@ -29,6 +48,9 @@ class RechargeImportController extends Controller
                 AND t.qty    = ri.ticket_count
                 AND t.confirmed_at BETWEEN DATE_SUB(ri.trx_time, INTERVAL 5 MINUTE)
                                        AND DATE_ADD(ri.trx_time, INTERVAL 5 MINUTE)
+                AND t.txn_ref NOT LIKE 'RCHG%'
+                AND t.txn_ref NOT LIKE 'RPLC%'
+                AND t.txn_ref NOT LIKE 'MBKG%'
             SET ri.ticket_status = 2
             WHERE ri.ticket_status = 0
               AND ri.trx_time IS NOT NULL
@@ -347,6 +369,9 @@ class RechargeImportController extends Controller
                 $import->trx_time->copy()->subMinutes(5),
                 $import->trx_time->copy()->addMinutes(5),
             ])
+            ->where('txn_ref', 'NOT LIKE', 'RCHG%')
+            ->where('txn_ref', 'NOT LIKE', 'RPLC%')
+            ->where('txn_ref', 'NOT LIKE', 'MBKG%')
             ->exists();
     }
 
