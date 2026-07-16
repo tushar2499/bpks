@@ -27,8 +27,8 @@ class RechargeImportController extends Controller
                 ON  t.phone  = ri.msisdn
                 AND t.status = 'success'
                 AND t.qty    = ri.ticket_count
-                AND t.confirmed_at BETWEEN DATE_SUB(ri.trx_time, INTERVAL 10 MINUTE)
-                                       AND DATE_ADD(ri.trx_time, INTERVAL 10 MINUTE)
+                AND t.confirmed_at BETWEEN DATE_SUB(ri.trx_time, INTERVAL 5 MINUTE)
+                                       AND DATE_ADD(ri.trx_time, INTERVAL 5 MINUTE)
             SET ri.ticket_status = 2
             WHERE ri.ticket_status = 0
               AND ri.trx_time IS NOT NULL
@@ -335,8 +335,8 @@ class RechargeImportController extends Controller
             ->where('status', 'success')
             ->where('qty', $import->ticket_count)
             ->whereBetween('confirmed_at', [
-                $import->trx_time->copy()->subMinutes(10),
-                $import->trx_time->copy()->addMinutes(10),
+                $import->trx_time->copy()->subMinutes(5),
+                $import->trx_time->copy()->addMinutes(5),
             ])
             ->exists();
     }
