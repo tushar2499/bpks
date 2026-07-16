@@ -35,7 +35,16 @@ class RechargeImportController extends Controller
         ");
 
         $imports = RechargeImport::orderByDesc('created_at')->paginate(50);
-        return view('admin.recharge-imports.index', compact('imports'));
+
+        $stats = RechargeImport::selectRaw("
+            COUNT(*) as total,
+            SUM(ticket_status = 0) as pending,
+            SUM(ticket_status = 1) as generated,
+            SUM(ticket_status = 2) as already_had,
+            SUM(CASE WHEN ticket_status = 1 THEN ticket_count ELSE 0 END) as tickets_issued
+        ")->first();
+
+        return view('admin.recharge-imports.index', compact('imports', 'stats'));
     }
 
     public function upload(Request $request)

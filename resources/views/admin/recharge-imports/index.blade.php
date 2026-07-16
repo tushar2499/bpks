@@ -18,7 +18,7 @@
   </div>
 @endif
 
-{{-- Upload Card --}}
+{{-- Upload Card + KPI --}}
 <div class="row mb-4">
   <div class="col-lg-5">
     <div class="card" style="border-radius:1rem;border:none;">
@@ -52,6 +52,52 @@
             <i class="fas fa-upload me-2"></i>আপলোড করুন
           </button>
         </form>
+      </div>
+    </div>
+  </div>
+
+  {{-- KPI Cards --}}
+  <div class="col-lg-7">
+    <div class="row g-3 h-100 align-content-center">
+      <div class="col-6">
+        <div class="card text-center h-100" style="border-radius:1rem;border:none;">
+          <div class="card-body py-4">
+            <div style="font-size:2rem;font-weight:700;color:#0d6efd">{{ number_format($stats->total) }}</div>
+            <div class="text-muted small mt-1">মোট ইম্পোর্ট</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6">
+        <div class="card text-center h-100" style="border-radius:1rem;border:none;">
+          <div class="card-body py-4">
+            <div style="font-size:2rem;font-weight:700;color:#198754">{{ number_format($stats->tickets_issued) }}</div>
+            <div class="text-muted small mt-1">টিকেট ইস্যু হয়েছে</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-4">
+        <div class="card text-center h-100" style="border-radius:1rem;border:none;">
+          <div class="card-body py-3">
+            <div style="font-size:1.6rem;font-weight:700;color:#ffc107">{{ number_format($stats->pending) }}</div>
+            <div class="text-muted small mt-1">অপেক্ষমাণ</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-4">
+        <div class="card text-center h-100" style="border-radius:1rem;border:none;">
+          <div class="card-body py-3">
+            <div style="font-size:1.6rem;font-weight:700;color:#198754">{{ number_format($stats->generated) }}</div>
+            <div class="text-muted small mt-1">নতুন তৈরি</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-4">
+        <div class="card text-center h-100" style="border-radius:1rem;border:none;">
+          <div class="card-body py-3">
+            <div style="font-size:1.6rem;font-weight:700;color:#0dcaf0">{{ number_format($stats->already_had) }}</div>
+            <div class="text-muted small mt-1">আগেই ছিল</div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
