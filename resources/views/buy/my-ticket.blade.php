@@ -152,6 +152,21 @@
   <h2 class="fw-bold text-center mb-1" style="font-size:1.3rem;">টিকেট খুঁজুন</h2>
   <p class="text-muted text-center mb-4" style="font-size:.85rem;">আপনার ফোন নম্বর দিন</p>
 
+  @if(\Carbon\Carbon::now('Asia/Dhaka')->gte(\Carbon\Carbon::parse('2026-07-17 23:45:00', 'Asia/Dhaka')))
+  <div class="mb-4 p-3 text-center" style="background:#fff3cd;border:1px solid #ffc107;border-radius:.75rem;">
+    <p class="mb-1" style="color:#856404;font-size:.85rem;font-weight:600;">
+      <i class="fas fa-info-circle me-1"></i>লটারির টিকিট বিক্রয় বন্ধ হয়েছে।
+    </p>
+    <p class="mb-0" style="color:#856404;font-size:.82rem;">
+      বাংলাদেশ প্রতিবন্ধী কল্যাণ সমিতি লটারি ড্র সম্পর্কিত আপডেট জানতে ভিজিট করুনঃ<br>
+      <a href="https://www.facebook.com/bpksbd1985" target="_blank" rel="noopener"
+         style="color:#0d6efd;font-weight:700;word-break:break-all;">
+        https://www.facebook.com/bpksbd1985
+      </a>
+    </p>
+  </div>
+  @endif
+
   @if(session('error'))
     <div class="alert alert-danger py-2 px-3 mb-3" style="border-radius:.75rem;font-size:.85rem;">
       <i class="fas fa-exclamation-circle me-1"></i>{{ session('error') }}
