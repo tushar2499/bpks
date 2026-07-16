@@ -4,13 +4,33 @@
 
 @section('content')
 <!-- Export Buttons -->
-<div class="d-flex gap-2 mb-4">
+<div class="d-flex gap-2 mb-3 flex-wrap">
   <a href="{{ route('admin.reports.csv') }}" class="btn btn-success">
     <i class="fas fa-file-csv me-1"></i> CSV ডাউনলোড
   </a>
   <a href="{{ route('admin.reports.pdf') }}" class="btn btn-danger" target="_blank">
     <i class="fas fa-file-pdf me-1"></i> PDF ডাউনলোড
   </a>
+</div>
+
+<!-- Operator Summary Excel -->
+<div class="card mb-4" style="border-radius:1rem;border:none;">
+  <div class="card-header bg-white border-bottom py-3 px-4">
+    <h6 class="fw-bold mb-0"><i class="fas fa-file-excel me-2 text-success"></i>অপারেটর ওয়াইজ সামারি (Excel)</h6>
+  </div>
+  <div class="card-body py-3 px-4">
+    <div class="d-flex gap-2 flex-wrap">
+      @foreach(['Grameenphone' => ['GP','success'], 'Banglalink' => ['BL','danger'], 'Robi' => ['Robi','warning'], 'Teletalk' => ['TT','info']] as $op => [$label, $color])
+      <a href="{{ route('admin.reports.summary-xlsx', $op) }}"
+         class="btn btn-outline-{{ $color }} fw-semibold">
+        <i class="fas fa-download me-1"></i>{{ $label }} Summary
+      </a>
+      @endforeach
+    </div>
+    <div class="text-muted small mt-2">
+      <i class="fas fa-info-circle me-1"></i>প্রতিটি ফাইলে: সিরিজ ওয়াইজ মোট টিকেট, অবশিষ্ট এবং ঐ অপারেটরের বিক্রি।
+    </div>
+  </div>
 </div>
 
 <!-- Summary Cards -->

@@ -10,6 +10,11 @@ use App\Services\Blink\BlinkService;
 use App\Services\DCB\GpConsentService;
 use App\Services\SMS\RobiSmsService;
 use Barryvdh\DomPDF\Facade\Pdf;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Style\Font;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -289,6 +294,114 @@ class ReportController extends Controller
             'confirmed'  => $t->confirmed_at?->format('H:i:s'),
             'sms'        => $t->smsLog?->status_message ?? '—',
         ]));
+    }
+
+    public function exportSummaryXlsx(string $operator)
+    {
+        $opMap = [
+            'Grameenphone' => 'GP',
+            'Banglalink'   => 'BL',
+            'Robi'         => 'Robi',
+            'Teletalk'     => 'TT',
+        ];
+
+        if (!array_key_exists($operator, $opMap)) {
+            abort(404);
+        }
+
+        // All series with total + available + sold-by-this-operator
+        $rows = DB::table('tickets')
+            ->selectRaw("
+                series,
+                COUNT(*) as total,
+                SUM(status = 0) as remain,
+                SUM(CASE WHEN status = 1 AND operator = ? THEN 1 ELSE 0 END) as sold
+            ", [$operator])
+            ->whereNotNull('series')
+            ->groupBy('series')
+            ->orderBy('series')
+            ->get();
+
+        $spreadsheet = new Spreadsheet();
+        $sheet       = $spreadsheet->getActiveSheet();
+        $sheet->setTitle($opMap[$operator]);
+
+        // Row 1 — title
+        $title = 'BPKS Lottery 2026 — ' . $operator;
+        $lastCol = 'D';
+        $sheet->mergeCells("A1:{$lastCol}1");
+        $sheet->setCellValue('A1', $title);
+        $sheet->getStyle('A1')->applyFromArray([
+            'font'      => ['bold' => true, 'size' => 13, 'color' => ['rgb' => 'FFFFFF']],
+            'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '1565C0']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+        ]);
+        $sheet->getRowDimension(1)->setRowHeight(24);
+
+        // Row 2 — headers
+        $headers = ['Details', 'TOTAL', 'Remain Ticket', 'Sale Ticket'];
+        foreach ($headers as $i => $h) {
+            $col = chr(ord('A') + $i);
+            $sheet->setCellValue("{$col}2", $h);
+        }
+        $sheet->getStyle('A2:D2')->applyFromArray([
+            'font'      => ['bold' => true, 'color' => ['rgb' => '000000']],
+            'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '4DD0E1']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+        ]);
+
+        // Data rows
+        $totals = ['total' => 0, 'remain' => 0, 'sold' => 0];
+        $rowNum = 3;
+        foreach ($rows as $r) {
+            $label = rtrim($r->series, '-');
+            $sheet->setCellValue("A{$rowNum}", $label);
+            $sheet->setCellValue("B{$rowNum}", (int)$r->total);
+            $sheet->setCellValue("C{$rowNum}", (int)$r->remain);
+            $sheet->setCellValue("D{$rowNum}", (int)$r->sold);
+
+            $totals['total']  += $r->total;
+            $totals['remain'] += $r->remain;
+            $totals['sold']   += $r->sold;
+
+            if ($rowNum % 2 === 0) {
+                $sheet->getStyle("A{$rowNum}:D{$rowNum}")->applyFromArray([
+                    'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'F5F5F5']],
+                ]);
+            }
+            $rowNum++;
+        }
+
+        // Summary row
+        $sheet->setCellValue("A{$rowNum}", 'Summary');
+        $sheet->setCellValue("B{$rowNum}", $totals['total']);
+        $sheet->setCellValue("C{$rowNum}", $totals['remain']);
+        $sheet->setCellValue("D{$rowNum}", $totals['sold']);
+        $sheet->getStyle("A{$rowNum}:D{$rowNum}")->applyFromArray([
+            'font' => ['bold' => true],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'E3F2FD']],
+        ]);
+
+        // Column widths + center numbers
+        $sheet->getColumnDimension('A')->setWidth(14);
+        $sheet->getColumnDimension('B')->setWidth(14);
+        $sheet->getColumnDimension('C')->setWidth(16);
+        $sheet->getColumnDimension('D')->setWidth(14);
+        $sheet->getStyle("B3:D{$rowNum}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+
+        // Border around all data
+        $sheet->getStyle("A2:D{$rowNum}")->getBorders()->getAllBorders()->setBorderStyle(
+            \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN
+        );
+
+        $filename = 'BPKS-Summary-' . $opMap[$operator] . '-' . date('Y-m-d') . '.xlsx';
+
+        return response()->streamDownload(function () use ($spreadsheet) {
+            $writer = new Xlsx($spreadsheet);
+            $writer->save('php://output');
+        }, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ]);
     }
 
     private function getStats(?string $opFilter = null): object

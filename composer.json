@@ -12,6 +12,7 @@
         "laravel/horizon": "^5.46",
         "laravel/octane": "^2.17",
         "laravel/tinker": "^2.10.1",
+        "phpoffice/phpspreadsheet": "*",
         "spiral/roadrunner": "^2025.1"
     },
     "require-dev": {

@@ -108,6 +108,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('reports/sms/{transaction}/retry', [ReportController::class, 'retrySms'])->name('reports.sms.retry');
         Route::get('reports/daily', [ReportController::class, 'dailyReport'])->name('reports.daily');
         Route::get('reports/daily-detail', [ReportController::class, 'dailyDetail'])->name('reports.daily-detail');
+        Route::get('reports/summary-xlsx/{operator}', [ReportController::class, 'exportSummaryXlsx'])->name('reports.summary-xlsx');
 
         Route::get('journey', [JourneyController::class, 'index'])->name('journey.index');
 
