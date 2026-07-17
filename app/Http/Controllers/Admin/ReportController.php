@@ -317,15 +317,16 @@ class ReportController extends Controller
             abort(404);
         }
 
-        // All series with total + available + sold-by-this-operator
+        // All series scoped to this operator: total, remain, sold
         $rows = DB::table('tickets')
+            ->where('operator', $operator)
+            ->whereNotNull('series')
             ->selectRaw("
                 series,
                 COUNT(*) as total,
                 SUM(status = 0) as remain,
-                SUM(CASE WHEN status = 1 AND operator = ? THEN 1 ELSE 0 END) as sold
-            ", [$operator])
-            ->whereNotNull('series')
+                SUM(status = 1) as sold
+            ")
             ->groupBy('series')
             ->orderBy('series')
             ->get();
