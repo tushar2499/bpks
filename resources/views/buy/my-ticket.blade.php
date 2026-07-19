@@ -339,6 +339,9 @@
 </div>
 @endif
 
+<!-- Fireworks canvas -->
+<canvas id="fwCanvas" style="position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:9998;"></canvas>
+
 <!-- Download overlay -->
 <div class="dl-overlay" id="dlOverlay">
   <div class="dl-spinner"></div>
@@ -346,6 +349,79 @@
 </div>
 
 <script>
+// ── Fireworks ──
+(function(){
+  var canvas = document.getElementById('fwCanvas');
+  var ctx = canvas.getContext('2d');
+  var W, H, particles = [], rockets = [], done = false;
+  var colors = ['#ff4e50','#fc913a','#f9d62e','#eae374','#e2f4c7','#a8e6cf','#dcedc1','#ff8b94','#ffaaa5','#a29bfe','#fd79a8','#fdcb6e'];
+
+  function resize(){ W=canvas.width=innerWidth; H=canvas.height=innerHeight; }
+  resize(); addEventListener('resize', resize);
+
+  function rnd(a,b){ return a + Math.random()*(b-a); }
+
+  function Rocket(){
+    this.x = rnd(W*.15, W*.85);
+    this.y = H;
+    this.vy = rnd(-18,-12);
+    this.vx = rnd(-1.5,1.5);
+    this.color = colors[Math.floor(Math.random()*colors.length)];
+    this.fuse = Math.floor(rnd(40,70));
+    this.tick = 0;
+  }
+  Rocket.prototype.update = function(){
+    this.x += this.vx; this.y += this.vy; this.vy += .35; this.tick++;
+    ctx.beginPath(); ctx.arc(this.x,this.y,2.5,0,Math.PI*2);
+    ctx.fillStyle=this.color; ctx.fill();
+    if(this.tick >= this.fuse){ explode(this); return true; }
+    return false;
+  };
+
+  function explode(r){
+    var count = Math.floor(rnd(70,120));
+    for(var i=0;i<count;i++){
+      var angle=Math.PI*2/count*i, speed=rnd(2,7);
+      particles.push({
+        x:r.x, y:r.y,
+        vx:Math.cos(angle)*speed, vy:Math.sin(angle)*speed,
+        alpha:1, color:r.color,
+        size:rnd(2,4), decay:rnd(.012,.022)
+      });
+    }
+  }
+
+  var launchCount = 0, maxLaunches = 18;
+  var launchInterval = setInterval(function(){
+    if(launchCount >= maxLaunches){ clearInterval(launchInterval); return; }
+    rockets.push(new Rocket());
+    if(Math.random()>.55) rockets.push(new Rocket());
+    launchCount++;
+  }, 400);
+
+  function frame(){
+    if(done) return;
+    ctx.clearRect(0,0,W,H);
+
+    rockets = rockets.filter(function(r){ return !r.update(); });
+
+    particles = particles.filter(function(p){
+      p.x+=p.vx; p.y+=p.vy; p.vy+=.09; p.vx*=.98;
+      p.alpha-=p.decay;
+      if(p.alpha<=0) return false;
+      ctx.globalAlpha=p.alpha;
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
+      ctx.fillStyle=p.color; ctx.fill();
+      ctx.globalAlpha=1;
+      return true;
+    });
+
+    if(launchCount>=maxLaunches && rockets.length===0 && particles.length===0){ done=true; return; }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+
 (function(){
   // Download overlay
   var overlay = document.getElementById('dlOverlay');
