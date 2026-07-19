@@ -238,6 +238,66 @@
   <div class="footer-note">Powered by B2M Technologies Ltd.</div>
 </div>
 
+{{-- Winner List --}}
+@if(!empty($winners))
+<div class="main-card mt-3" style="max-width:440px;width:100%;padding:1.5rem;">
+
+  {{-- Congratulations banner if user's ticket won --}}
+  @if(isset($wonTickets) && count($wonTickets) > 0)
+  <div class="mb-4 p-3 text-center" style="background:#d1fae5;border:2px solid #10b981;border-radius:.75rem;">
+    <div style="font-size:1.5rem;">🎉</div>
+    <p class="mb-1 fw-bold" style="color:#065f46;font-size:.95rem;">অভিনন্দন! আপনার টিকেট পুরস্কার জিতেছে!</p>
+    @foreach($wonTickets as $w)
+    <div class="mt-1 p-2" style="background:#a7f3d0;border-radius:.5rem;">
+      <div class="fw-bold" style="color:#064e3b;font-size:.9rem;">{{ $w['ticket_no'] }}</div>
+      <div style="color:#065f46;font-size:.8rem;">{{ $w['prize'] }}</div>
+    </div>
+    @endforeach
+    <p class="mb-0 mt-2" style="color:#065f46;font-size:.78rem;">পুরস্কার সংগ্রহের জন্য BPKS-এর সাথে যোগাযোগ করুন।</p>
+  </div>
+  @endif
+
+  <h3 class="fw-bold text-center mb-3" style="font-size:1.1rem;color:#1e3a8a;">
+    <i class="fas fa-trophy me-2" style="color:#f59e0b;"></i>বিজয়ী তালিকা
+  </h3>
+
+  @foreach($winners as $awardId => $group)
+  @php
+    $isPrimary = $awardId <= 5;
+    $borderColor = match((int)$awardId) {
+      1 => '#f59e0b', 2 => '#94a3b8', 3 => '#b45309',
+      4 => '#7c3aed', 5 => '#0891b2', default => '#e2e8f0'
+    };
+  @endphp
+  <div class="mb-3" style="border:2px solid {{ $borderColor }};border-radius:.75rem;overflow:hidden;">
+    <div class="px-3 py-2 fw-bold" style="background:{{ $borderColor }};color:#fff;font-size:.82rem;">
+      @if($awardId == 1) 🥇 @elseif($awardId == 2) 🥈 @elseif($awardId == 3) 🥉 @else 🏅 @endif
+      {{ $group['title'] }}
+    </div>
+    <div class="px-3 py-2">
+      @foreach($group['winners'] as $w)
+      <div class="d-flex justify-content-between align-items-start py-1" style="border-bottom:1px solid #f1f5f9;font-size:.8rem;">
+        <div>
+          <span class="fw-bold" style="color:#b91c1c;letter-spacing:.5px;font-family:monospace;">{{ $w['ticket_no'] }}</span>
+          @if($w['name'])
+            <span class="text-muted ms-1">({{ $w['name'] }}{{ $w['district'] ? ', '.$w['district'] : '' }})</span>
+          @elseif($w['district'])
+            <span class="text-muted ms-1">({{ $w['district'] }})</span>
+          @endif
+        </div>
+        <span class="badge ms-2 flex-shrink-0" style="font-size:.65rem;background:{{ $w['type']==='virtual' ? '#dbeafe' : '#f3f4f6' }};color:{{ $w['type']==='virtual' ? '#1e40af' : '#374151' }};">
+          {{ $w['type'] === 'virtual' ? $w['merchant'] : 'Paper' }}
+        </span>
+      </div>
+      @endforeach
+    </div>
+  </div>
+  @endforeach
+
+  <div class="text-muted text-center" style="font-size:.72rem;">পুরস্কার সংক্রান্ত যেকোনো তথ্যের জন্য BPKS কর্তৃপক্ষের সাথে যোগাযোগ করুন।</div>
+</div>
+@endif
+
 <!-- Download overlay -->
 <div class="dl-overlay" id="dlOverlay">
   <div class="dl-spinner"></div>
