@@ -19,7 +19,7 @@ class SalesClosedMiddleware
 
         $allowed = [
             'my-ticket',
-            'ticket/download',
+            'ticket',
             'admin',
             'clear-cache',
             'sms-notify',
