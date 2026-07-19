@@ -274,21 +274,9 @@
       @if($awardId == 1) 🥇 @elseif($awardId == 2) 🥈 @elseif($awardId == 3) 🥉 @else 🏅 @endif
       {{ $group['title'] }}
     </div>
-    <div class="px-3 py-2">
+    <div class="px-3 py-2 d-flex flex-wrap gap-1">
       @foreach($group['winners'] as $w)
-      <div class="d-flex justify-content-between align-items-start py-1" style="border-bottom:1px solid #f1f5f9;font-size:.8rem;">
-        <div>
-          <span class="fw-bold" style="color:#b91c1c;letter-spacing:.5px;font-family:monospace;">{{ $w['ticket_no'] }}</span>
-          @if($w['name'])
-            <span class="text-muted ms-1">({{ $w['name'] }}{{ $w['district'] ? ', '.$w['district'] : '' }})</span>
-          @elseif($w['district'])
-            <span class="text-muted ms-1">({{ $w['district'] }})</span>
-          @endif
-        </div>
-        <span class="badge ms-2 flex-shrink-0" style="font-size:.65rem;background:{{ $w['type']==='virtual' ? '#dbeafe' : '#f3f4f6' }};color:{{ $w['type']==='virtual' ? '#1e40af' : '#374151' }};">
-          {{ $w['type'] === 'virtual' ? $w['merchant'] : 'Paper' }}
-        </span>
-      </div>
+      <span style="font-family:monospace;font-size:.8rem;font-weight:700;color:#b91c1c;background:#fef2f2;border-radius:.35rem;padding:.15rem .4rem;">{{ $w['ticket_no'] }}</span>
       @endforeach
     </div>
   </div>
