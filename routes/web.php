@@ -40,7 +40,7 @@ Route::get('/ticket/download-pdf', [TicketImageController::class, 'downloadPdf']
 Route::get('/ticket/download-all-pdf', [TicketImageController::class, 'downloadAllPdf'])->name('ticket.download-all-pdf');
 Route::get('/my-ticket', [MyTicketController::class, 'show'])->name('my-ticket.show');
 Route::post('/my-ticket', [MyTicketController::class, 'find'])->name('my-ticket.find')
-    ->middleware('throttle:3,60');
+    ->middleware('throttle:30,1');
 
 // ─── Blink Notify (Blink POSTs here after successful charge) ─────────────────
 Route::post('/api/blink-notify', [CallbackController::class, 'blinkNotify'])
