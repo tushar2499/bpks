@@ -216,21 +216,6 @@
   </div>
   @endif
 
-  {{-- Congratulations --}}
-  @if(isset($wonTickets) && count($wonTickets) > 0)
-  <div class="mb-3 p-3 text-center" style="background:#d1fae5;border:2px solid #10b981;border-radius:.75rem;">
-    <div style="font-size:1.4rem;">🎉</div>
-    <p class="mb-2 fw-bold" style="color:#065f46;font-size:.92rem;">অভিনন্দন! আপনার টিকেট পুরস্কার জিতেছে!</p>
-    @foreach($wonTickets as $w)
-    <div class="mb-1 p-2" style="background:#a7f3d0;border-radius:.5rem;">
-      <div class="fw-bold" style="color:#064e3b;font-family:monospace;font-size:.95rem;">{{ $w['ticket_no'] }}</div>
-      <div style="color:#065f46;font-size:.78rem;">{{ $w['prize'] }}</div>
-    </div>
-    @endforeach
-    <p class="mb-0 mt-2" style="color:#065f46;font-size:.75rem;">পুরস্কার সংগ্রহের জন্য BPKS-এর সাথে যোগাযোগ করুন।</p>
-  </div>
-  @endif
-
   @if(!isset($transactions))
   {{-- Search form --}}
   <form method="POST" action="{{ route('my-ticket.find') }}">
@@ -282,62 +267,21 @@
   <div class="footer-note mt-3">Powered by B2M Technologies Ltd.</div>
 </div>
 
-{{-- ── Winner Table Card ── --}}
-@if(!empty($winners))
-@php
-  $prizeColors = [
-    1 => ['bg'=>'#fef3c7','color'=>'#92400e','label'=>'১ম পুরস্কার'],
-    2 => ['bg'=>'#e2e8f0','color'=>'#374151','label'=>'২য় পুরস্কার'],
-    3 => ['bg'=>'#fde8d0','color'=>'#7c2d12','label'=>'৩য় পুরস্কার'],
-    4 => ['bg'=>'#ede9fe','color'=>'#5b21b6','label'=>'৪র্থ পুরস্কার'],
-    5 => ['bg'=>'#cffafe','color'=>'#155e75','label'=>'৫ম পুরস্কার'],
-    6 => ['bg'=>'#dcfce7','color'=>'#166534','label'=>'৬ষ্ঠ পুরস্কার'],
-    7 => ['bg'=>'#fce7f3','color'=>'#9d174d','label'=>'৭ম পুরস্কার'],
-    8 => ['bg'=>'#f0fdf4','color'=>'#14532d','label'=>'৮ম পুরস্কার'],
-  ];
-@endphp
+{{-- ── Winner List Image Card ── --}}
 <div class="winner-card">
   <div class="winner-header">
     <h2><i class="fas fa-trophy me-2" style="color:#fbbf24;"></i>বিজয়ী তালিকা</h2>
-    <span style="color:rgba(255,255,255,.7);font-size:.78rem;">
-      @php $total = array_sum(array_map(fn($g)=>count($g['winners']),$winners)); @endphp
-      {{ $total }} বিজয়ী
-    </span>
   </div>
-
-  <div class="filter-wrap">
-    <input type="text" id="ticketFilter" class="filter-input"
-           placeholder="🔍  টিকেট নম্বর দিয়ে খুঁজুন…" autocomplete="off">
-  </div>
-
-  <div class="table-scroll">
-    <table class="winner-table">
-      <thead>
-        <tr>
-          <th>পুরস্কার</th>
-          <th>টিকেট নম্বর</th>
-        </tr>
-      </thead>
-      <tbody id="winnerTbody">
-        @foreach($winners as $awardId => $group)
-          @php $pc = $prizeColors[$awardId] ?? ['bg'=>'#f1f5f9','color'=>'#374151','label'=>$awardId.'তম']; @endphp
-          @foreach($group['winners'] as $w)
-          <tr class="winner-row" data-ticket="{{ strtolower($w['ticket_no']) }}">
-            <td>
-              <span class="prize-badge" style="background:{{ $pc['bg'] }};color:{{ $pc['color'] }};">
-                {{ $pc['label'] }}
-              </span>
-            </td>
-            <td><span class="ticket-chip">{{ $w['ticket_no'] }}</span></td>
-          </tr>
-          @endforeach
-        @endforeach
-      </tbody>
-    </table>
-    <div class="no-result" id="noResult">কোনো টিকেট পাওয়া যায়নি।</div>
+  <div style="padding:.75rem;">
+    <img src="{{ asset('winner-list.jpeg') }}" alt="Winner List"
+         style="width:100%;border-radius:.75rem;display:block;">
+    <a href="{{ asset('winner-list.jpeg') }}" download="BPKS-Winner-List.jpeg"
+       class="btn-find mt-3 d-block text-center text-decoration-none"
+       style="padding:.7rem 1rem;border-radius:2rem;">
+      <i class="fas fa-download me-2"></i>বিজয়ী তালিকা ডাউনলোড করুন
+    </a>
   </div>
 </div>
-@endif
 
 <!-- Fireworks canvas -->
 <canvas id="fwCanvas" style="position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:9998;"></canvas>
