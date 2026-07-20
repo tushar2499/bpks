@@ -273,6 +273,12 @@
     <h2><i class="fas fa-trophy me-2" style="color:#fbbf24;"></i>বিজয়ী তালিকা</h2>
   </div>
   <div style="padding:.75rem;">
+    <div class="mb-3 p-3 text-center" style="background:#fff8e1;border:1px solid #ffc107;border-radius:.75rem;font-size:.82rem;color:#5d4037;line-height:1.7;">
+      আপনি যদি বিজয়ী হয়ে থাকেন অথবা বি পি কে এস লটারি সম্পর্কিত কোন তথ্য জানার থাকলে অথবা কোন মন্তব্য করতে চাইলে নিম্নে উল্লেখিত মোবাইল নম্বরে যোগাযোগ করার জন্য অনুরোধ করা হচ্ছে।<br>
+      <span class="fw-bold" style="font-size:.88rem;color:#1e3a8a;">
+        <i class="fas fa-phone me-1"></i>8801917744103, 8801842589870
+      </span>
+    </div>
     <img src="{{ asset('winner-list.jpeg') }}" alt="Winner List"
          style="width:100%;border-radius:.75rem;display:block;">
     <a href="{{ asset('winner-list.jpeg') }}" download="BPKS-Winner-List.jpeg"
